@@ -1,76 +1,114 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (
-    <main className="min-h-dvh bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-black flex flex-col items-center justify-center px-6 py-24">
-      <div className="w-full max-w-3xl space-y-10">
-        <header className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500" />
-            <span className="text-lg font-semibold tracking-tight">JobMagnet</span>
-          </div>
-          <Badge variant="outline" className="font-mono text-xs">
-            day 1 • foundation
-          </Badge>
-        </header>
+    <main className="min-h-dvh bg-white flex flex-col">
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <div className="size-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600" />
+          <span className="text-base font-semibold tracking-tight text-slate-900">
+            JobMagnet
+          </span>
+        </div>
+        <Link
+          href="/start"
+          className={cn(buttonVariants({ size: "sm" }))}
+        >
+          Try it free &rarr;
+        </Link>
+      </nav>
 
-        <section className="space-y-4">
-          <h1 className="text-4xl font-semibold tracking-tight text-balance md:text-5xl">
-            One job application. Five Codex agents. A portfolio site you own.
-          </h1>
-          <p className="text-lg leading-7 text-zinc-600 dark:text-zinc-400">
-            Drop a LinkedIn PDF and a job description. We generate a branded portfolio, a tailored resume, a cover
-            letter, and an optional product critique — all delivered as a Next.js project you deploy to your own Vercel.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button disabled>Start your application →</Button>
-            <Button variant="outline" disabled>
-              How it works
-            </Button>
-          </div>
-          <p className="text-xs text-zinc-500">Wizard ships Day 2 (MVP submission). This page is the foundation milestone.</p>
-        </section>
+      {/* Hero */}
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 flex-1">
+        <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700 mb-6">
+          OpenAI × Outskill Hackathon
+        </div>
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 max-w-3xl mb-5 leading-tight">
+          Tailored portfolios + cover letters in{" "}
+          <span className="text-violet-600">60 seconds</span>
+        </h1>
+        <p className="text-lg md:text-xl text-slate-500 max-w-2xl mb-10 leading-relaxed">
+          Paste a JD. Drop your LinkedIn. Walk away with a recruiter-ready site
+          + 5-page PM-style pitch.
+        </p>
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Link
+            href="/start"
+            className={cn(buttonVariants({ size: "lg" }), "text-base px-8")}
+          >
+            Try it free &rarr;
+          </Link>
+          <a
+            href="#how-it-works"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "text-base px-8",
+            )}
+          >
+            How it works
+          </a>
+        </div>
+      </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">System status</CardTitle>
-            <CardDescription>Day-1 surface — what is live right now</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3 text-sm md:grid-cols-2">
-            <StatusRow label="VPS Codex runtime" status="live" detail="jobmagnet-codex.aksheywalia.in/health" />
-            <StatusRow label="ResearchSage v0" status="live" detail="POST /run-agent { agent: 'research' }" />
-            <StatusRow label="Supabase schema" status="live" detail="5 tables + RLS + perf advisors green" />
-            <StatusRow label="Cloudflare Tunnel" status="live" detail="HTTPS via existing sage-control tunnel" />
-            <StatusRow label="Wizard + agents UI" status="pending" detail="Day 2 (Wed)" />
-            <StatusRow label="Download & deploy" status="pending" detail="Day 2 (Wed)" />
-          </CardContent>
-        </Card>
+      {/* Feature cards */}
+      <section
+        id="how-it-works"
+        className="px-6 pb-20 max-w-5xl mx-auto w-full"
+      >
+        <div className="grid gap-5 sm:grid-cols-3">
+          <FeatureCard
+            icon="🎨"
+            name="BrandSage"
+            description="Pulls the company's real brand colors and fonts via Brandfetch, then styles your entire portfolio to match. Your site looks native to the company."
+          />
+          <FeatureCard
+            icon="✍️"
+            name="NarrativeSage"
+            description="Reads the JD + your LinkedIn and writes a tailored headline, about section, cover letter, and role-specific resume bullets. Zero generic fluff."
+          />
+          <FeatureCard
+            icon="💡"
+            name="PitchSage"
+            description="Optional 5-page PM pitch: problem, hypothesis, solution, metrics, tradeoffs. Pick your stance — builder, analyst, customer, or strategist."
+          />
+        </div>
+      </section>
 
-        <footer className="pt-6 text-xs text-zinc-500">
-          Built for the OpenAI × Outskill hackathon · May 26–31, 2026.
-        </footer>
-      </div>
+      {/* Footer */}
+      <footer className="border-t border-slate-100 py-6 text-center text-xs text-slate-400">
+        <p>
+          Built for the OpenAI × Outskill hackathon. $0 in API spend — every
+          agent runs on ChatGPT Plus via the Codex SDK.
+        </p>
+      </footer>
     </main>
   );
 }
 
-function StatusRow({ label, status, detail }: { label: string; status: "live" | "pending"; detail: string }) {
+function FeatureCard({
+  icon,
+  name,
+  description,
+}: {
+  readonly icon: string;
+  readonly name: string;
+  readonly description: string;
+}) {
   return (
-    <div className="flex items-start gap-3">
-      <span
-        aria-hidden
-        className={
-          status === "live"
-            ? "mt-1.5 size-2 rounded-full bg-emerald-500"
-            : "mt-1.5 size-2 rounded-full bg-zinc-300 dark:bg-zinc-700"
-        }
-      />
-      <div>
-        <div className="font-medium">{label}</div>
-        <div className="font-mono text-xs text-zinc-500">{detail}</div>
-      </div>
-    </div>
+    <Card className="border-slate-200">
+      <CardHeader className="pb-2">
+        <div className="text-2xl mb-1">{icon}</div>
+        <CardTitle className="text-base font-semibold text-slate-900">
+          {name}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+      </CardContent>
+    </Card>
   );
 }
