@@ -49,7 +49,11 @@ export async function callVpsAgent(params: CallVpsAgentParams): Promise<VpsRespo
     throw new VpsClientError("VPS_SHARED_SECRET env var is required server-side");
   }
 
-  const timeoutMs = params.timeoutMs ?? 120_000;
+  // Vercel Hobby caps serverless function duration at 60s — the bridge
+  // timeout must finish before the function gets killed, or we end up with
+  // an orphaned in-flight VPS call (which still bills Plus tokens) and the
+  // caller sees a generic 504. 55s gives 5s headroom for response serialization.
+  const timeoutMs = params.timeoutMs ?? 55_000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 

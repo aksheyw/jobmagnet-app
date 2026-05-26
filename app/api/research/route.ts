@@ -51,8 +51,28 @@ export async function POST(req: Request) {
       webSearchQueries: vpsResponse.webSearchQueries,
     });
   } catch (err) {
-    const status = err instanceof VpsClientError && err.status ? err.status : 502;
-    const message = err instanceof Error ? err.message : "research agent failed";
-    return NextResponse.json({ ok: false, job_id: id, error: message }, { status });
+    // Map upstream errors to clean public responses without leaking VPS
+    // internals (paths, env var names, SDK stack frames). Detailed logging
+    // happens server-side via console.error.
+    console.error("research route failed", {
+      job_id: id,
+      err: err instanceof Error ? { name: err.name, message: err.message } : err,
+    });
+
+    if (err instanceof VpsClientError) {
+      // 4xx from VPS (validation, SSRF reject, agent-not-implemented) → propagate
+      // the user-facing status with a tidy generic message. Real detail is logged.
+      if (err.status && err.status >= 400 && err.status < 500) {
+        return NextResponse.json(
+          { ok: false, job_id: id, error: "request rejected by agent runtime" },
+          { status: err.status },
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { ok: false, job_id: id, error: "research agent failed" },
+      { status: 502 },
+    );
   }
 }
