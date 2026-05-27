@@ -35,7 +35,7 @@ export default function Home() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 mb-5">
               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
-              OpenAI × Outskill Hackathon · Live
+              Free to try · No account needed
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-5 leading-[1.05]">
               The portfolio recruiters{" "}
@@ -78,15 +78,15 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                $0 token spend
+                Tailored to the JD
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                No account needed
+                Brand-matched design
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Self-deploy to Vercel
+                Yours to deploy anywhere
               </span>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function Home() {
             order={5}
             icon="⚙️"
             name="Code"
-            description="Generates a buildable Next.js project + zips it for self-deploy. Deterministic, zero tokens."
+            description="Generates a buildable Next.js project + zips it for self-deploy. Done in milliseconds."
           />
         </div>
       </section>
@@ -152,18 +152,18 @@ export default function Home() {
           <div className="grid gap-6 sm:grid-cols-3">
             <Stat
               value="96s"
-              label="median end-to-end"
-              note="from paste to download"
+              label="paste to download"
+              note="median end-to-end generation"
             />
             <Stat
-              value="$0"
-              label="API spend"
-              note="ChatGPT Plus OAuth via Codex SDK"
+              value="Free"
+              label="to try"
+              note="no signup, no credit card"
             />
             <Stat
-              value="5"
-              label="specialized agents"
-              note="orchestrated in parallel where possible"
+              value="Yours"
+              label="code, your hosting"
+              note="self-deploy to Vercel · Netlify · anywhere"
             />
           </div>
         </div>

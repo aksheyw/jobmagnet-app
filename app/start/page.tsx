@@ -141,7 +141,7 @@ export default function StartPage() {
         </Link>
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          Free during hackathon
+          Free to try
         </span>
       </nav>
 

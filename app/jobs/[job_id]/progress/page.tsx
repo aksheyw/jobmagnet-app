@@ -234,15 +234,11 @@ export default function ProgressPage({ params }: ProgressPageProps) {
           {/* Reassurance */}
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-center">
             <p className="text-xs text-slate-500 leading-relaxed">
-              Each agent runs on{" "}
-              <span className="font-medium text-slate-700">
-                ChatGPT Plus
-              </span>{" "}
-              via the{" "}
-              <span className="font-medium text-slate-700">Codex SDK</span>{" "}
-              over a Hostinger VPS bridge.{" "}
-              <span className="text-emerald-700 font-medium">$0</span> in API
-              spend.
+              Your profile + JD are processed once, then{" "}
+              <span className="font-medium text-slate-700">deleted</span>. The
+              portfolio is{" "}
+              <span className="font-medium text-slate-700">yours to keep</span>{" "}
+              — no account, no lock-in, no ongoing cost.
             </p>
           </div>
 

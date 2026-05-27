@@ -208,12 +208,11 @@ export function LandingDemo() {
           {/* Footer brag */}
           <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100">
             <span className="text-[11px] text-slate-500">
-              <span className="font-semibold text-slate-700">$0</span> in API
-              spend &middot; ChatGPT Plus via Codex SDK
+              Brand-matched portfolio &middot; ready to download
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Live
+              Live demo
             </span>
           </div>
         </div>

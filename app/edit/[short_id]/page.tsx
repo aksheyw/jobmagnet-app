@@ -189,10 +189,8 @@ function TrailOfWork({ usage }: { readonly usage: CodexUsageRow[] }) {
           </span>
         </div>
         <div className="flex justify-between text-[11px]">
-          <span className="text-slate-500">Billed</span>
-          <span className="font-semibold text-emerald-700">
-            $0 · Plus quota
-          </span>
+          <span className="text-slate-500">Cost to you</span>
+          <span className="font-semibold text-emerald-700">Free</span>
         </div>
       </div>
     </div>
