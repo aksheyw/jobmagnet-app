@@ -23,11 +23,19 @@ function resolveAgentState(agentStatus: AgentStatus | undefined): AgentState {
 }
 
 function computeDurationMs(
-  agentStatus: AgentStatus | undefined,
+  agent: string,
+  startedAt: Record<string, string> | null | undefined,
+  completedAt: Record<string, string> | null | undefined,
 ): number | undefined {
-  if (!agentStatus?.started_at || !agentStatus?.completed_at) return undefined;
-  const start = new Date(agentStatus.started_at as string).getTime();
-  const end = new Date(agentStatus.completed_at as string).getTime();
+  // F69: orchestrator writes per-agent timestamps to the TOP-LEVEL job maps
+  // (agent_started_at[agent] + agent_completed_at[agent]), NOT into agent_states[agent].
+  // Reading from agent_states.started_at always returned undefined, so the row
+  // showed "—" for every agent since Day 2.
+  const s = startedAt?.[agent];
+  const c = completedAt?.[agent];
+  if (!s || !c) return undefined;
+  const start = new Date(s).getTime();
+  const end = new Date(c).getTime();
   return Math.max(0, end - start);
 }
 
@@ -219,7 +227,11 @@ export default function ProgressPage({ params }: ProgressPageProps) {
             {AGENT_ORDER.map((agent) => {
               const status = agentStates[agent] as AgentStatus | undefined;
               const state = resolveAgentState(status);
-              const durationMs = computeDurationMs(status);
+              const durationMs = computeDurationMs(
+                agent,
+                job?.agent_started_at,
+                job?.agent_completed_at,
+              );
               return (
                 <AgentProgressRow
                   key={agent}

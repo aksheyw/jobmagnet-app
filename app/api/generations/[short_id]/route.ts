@@ -64,8 +64,21 @@ export async function GET(
     codex_usage = (usage ?? []) as CodexUsageRow[];
   }
 
+  // F67: surface pitch_stance from the originating job so the editor can
+  // distinguish "user opted out of pitch" (stance == null) from
+  // "user requested pitch but it failed" (stance != null, pitch_section == null).
+  let pitch_stance: string | null = null;
+  if (gen.job_id) {
+    const { data: jobRow } = await supabase
+      .from("generation_jobs")
+      .select("pitch_stance")
+      .eq("id", gen.job_id)
+      .maybeSingle();
+    pitch_stance = (jobRow?.pitch_stance ?? null) as string | null;
+  }
+
   return NextResponse.json({
     ok: true,
-    generation: { ...gen, codex_usage },
+    generation: { ...gen, codex_usage, pitch_stance },
   });
 }

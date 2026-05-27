@@ -128,6 +128,13 @@ export default function StartPage() {
           profilePayload.contact = candidateContact.trim();
         }
 
+        // C1: pipe the magic-link email through to NarrativeAgent so the Hero
+        // can render a distinct "Email me" CTA alongside "Connect on LinkedIn".
+        // Same email; dual purpose (no extra wizard field).
+        if (email.trim()) {
+          profilePayload.email = email.trim();
+        }
+
         if (showWorkEntries) {
           const validEntries = workEntries
             .map((e) => ({

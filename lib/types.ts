@@ -39,6 +39,7 @@ export interface BrandStyle {
 export interface Narrative {
   candidate_name: string;
   candidate_contact?: string;
+  candidate_email?: string;
   headline: string;
   why_im_a_fit: Array<{ bullet: string; metric: string }>;
   about: string;
@@ -90,6 +91,7 @@ export interface Generation {
   brand_style: BrandStyle;
   narrative: Narrative;
   pitch_section: PitchSection | null;
+  pitch_stance?: string | null;
   zip_url: string | null;
   zip_size_bytes: number | null;
   zip_generated_at: string | null;

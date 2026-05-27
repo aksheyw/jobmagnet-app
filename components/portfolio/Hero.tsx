@@ -3,62 +3,84 @@ import type { BrandStyle } from "@/lib/types";
 interface HeroProps {
   readonly candidateName: string;
   readonly candidateContact?: string;
+  readonly candidateEmail?: string;
   readonly headline: string;
   readonly companyName: string;
   readonly brandStyle: BrandStyle;
 }
 
-function resolveContactHref(contact: string | undefined, candidateName: string): {
-  primaryHref: string;
-  secondaryHref: string;
-  primaryLabel: string;
-  secondaryLabel: string;
-} {
-  const trimmed = contact?.trim() ?? "";
+interface CtaTarget {
+  kind: "linkedin" | "email" | "fallback";
+  href: string;
+  label: string;
+  external: boolean;
+}
+
+function resolveCtas(
+  contact: string | undefined,
+  email: string | undefined,
+  candidateName: string,
+): readonly CtaTarget[] {
+  const trimmedContact = contact?.trim() ?? "";
+  const trimmedEmail = email?.trim() ?? "";
   const subject = encodeURIComponent(`Let's connect — ${candidateName}`);
 
-  if (!trimmed) {
-    const fallback = `mailto:?subject=${subject}`;
-    return {
-      primaryHref: fallback,
-      secondaryHref: fallback,
-      primaryLabel: "Schedule a call →",
-      secondaryLabel: "Get in touch",
-    };
+  // 1. LinkedIn-from-contact (auto-prepend https:// for scheme-less input)
+  let linkedinUrl: string | null = null;
+  if (
+    /linkedin\.com\/in\//i.test(trimmedContact) ||
+    /^https?:\/\//i.test(trimmedContact)
+  ) {
+    linkedinUrl = /^https?:\/\//i.test(trimmedContact)
+      ? trimmedContact
+      : `https://${trimmedContact}`;
   }
 
-  if (/linkedin\.com\/in\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
-    const href = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-    return {
-      primaryHref: href,
-      secondaryHref: href,
-      primaryLabel: "Connect on LinkedIn →",
-      secondaryLabel: "View profile",
-    };
+  // 2. Email: prefer dedicated email prop, fall back to contact-if-email
+  let emailAddr = "";
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    emailAddr = trimmedEmail;
+  } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedContact)) {
+    // Only use contact-as-email if contact wasn't already used for LinkedIn
+    if (!linkedinUrl) emailAddr = trimmedContact;
   }
 
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-    const mailto = `mailto:${trimmed}?subject=${subject}`;
-    return {
-      primaryHref: mailto,
-      secondaryHref: mailto,
-      primaryLabel: "Schedule a call →",
-      secondaryLabel: "Get in touch",
-    };
+  const ctas: CtaTarget[] = [];
+
+  if (linkedinUrl) {
+    ctas.push({
+      kind: "linkedin",
+      href: linkedinUrl,
+      label: "Connect on LinkedIn →",
+      external: true,
+    });
   }
 
-  const fallback = `mailto:?subject=${subject}`;
-  return {
-    primaryHref: fallback,
-    secondaryHref: fallback,
-    primaryLabel: "Schedule a call →",
-    secondaryLabel: "Get in touch",
-  };
+  if (emailAddr) {
+    ctas.push({
+      kind: "email",
+      href: `mailto:${emailAddr}?subject=${subject}`,
+      label: "Email me",
+      external: false,
+    });
+  }
+
+  if (ctas.length === 0) {
+    ctas.push({
+      kind: "fallback",
+      href: `mailto:?subject=${subject}`,
+      label: "Get in touch",
+      external: false,
+    });
+  }
+
+  return ctas;
 }
 
 export function Hero({
   candidateName,
   candidateContact,
+  candidateEmail,
   headline,
   companyName,
   brandStyle,
@@ -70,15 +92,8 @@ export function Hero({
     .slice(0, 2)
     .toUpperCase();
 
-  const { primaryHref, secondaryHref, primaryLabel, secondaryLabel } =
-    resolveContactHref(candidateContact, candidateName);
-
+  const ctas = resolveCtas(candidateContact, candidateEmail, candidateName);
   const parts = headline.split(companyName);
-
-  const externalLink = /^https?:\/\//i.test(primaryHref);
-  const linkRelAttrs = externalLink
-    ? { target: "_blank" as const, rel: "noopener noreferrer" }
-    : {};
 
   return (
     <section
@@ -116,21 +131,29 @@ export function Hero({
       </p>
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <a
-          href={primaryHref}
-          {...linkRelAttrs}
-          className="inline-flex items-center rounded-md px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: brandStyle.primary }}
-        >
-          {primaryLabel}
-        </a>
-        <a
-          href={secondaryHref}
-          {...linkRelAttrs}
-          className="inline-flex items-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50"
-        >
-          {secondaryLabel}
-        </a>
+        {ctas.map((cta, idx) => {
+          const isPrimary = idx === 0;
+          const externalProps = cta.external
+            ? { target: "_blank" as const, rel: "noopener noreferrer" }
+            : {};
+          return (
+            <a
+              key={cta.kind}
+              href={cta.href}
+              {...externalProps}
+              className={
+                isPrimary
+                  ? "inline-flex items-center rounded-md px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                  : "inline-flex items-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50"
+              }
+              style={
+                isPrimary ? { backgroundColor: brandStyle.primary } : undefined
+              }
+            >
+              {cta.label}
+            </a>
+          );
+        })}
       </div>
     </section>
   );
