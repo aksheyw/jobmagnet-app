@@ -31,7 +31,7 @@ export async function GET(
   const { data: job, error: jobErr } = await supabase
     .from("generation_jobs")
     .select(
-      "id, status, agent_states, agent_started_at, agent_completed_at, error, created_at, completed_at, pitchsage_stance",
+      "id, status, agent_states, agent_started_at, agent_completed_at, error, created_at, completed_at, pitch_stance",
     )
     .eq("id", job_id)
     .maybeSingle();
@@ -72,7 +72,7 @@ export async function GET(
       error: job.error,
       created_at: job.created_at,
       completed_at: job.completed_at,
-      pitchsage_stance: job.pitchsage_stance,
+      pitch_stance: job.pitch_stance,
       short_id,
     },
   });

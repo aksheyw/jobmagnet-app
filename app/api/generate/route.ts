@@ -7,7 +7,7 @@ import { startOrchestration, OrchestrateError } from "@/lib/vps/orchestrate";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const PitchsageSchema = z.object({
+const PitchSchema = z.object({
   enabled: z.boolean(),
   stance: z.enum(["builder", "analyst", "customer", "strategist"]),
   seed: z.string().min(1).max(400),
@@ -19,7 +19,7 @@ const BodySchema = z
     jd_paste_text: z.string().min(40).max(50_000).optional(),
     parsed_profile: z.record(z.string(), z.unknown()),
     email: z.string().email().optional(),
-    pitchsage: PitchsageSchema.optional(),
+    pitch: PitchSchema.optional(),
   })
   .refine((v) => Boolean(v.jd_url) || Boolean(v.jd_paste_text), {
     message: "jd_url or jd_paste_text required",
@@ -71,8 +71,8 @@ export async function POST(req: Request) {
       jd_url: parsed.data.jd_url ?? null,
       jd_paste_text: parsed.data.jd_paste_text ?? null,
       jd_input: parsed.data.jd_url ? "url" : "paste",
-      pitchsage_stance: parsed.data.pitchsage?.stance ?? null,
-      pitchsage_seed: parsed.data.pitchsage?.seed ?? null,
+      pitch_stance: parsed.data.pitch?.stance ?? null,
+      pitch_seed: parsed.data.pitch?.seed ?? null,
       status: "queued",
     })
     .select("id")
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       jd_paste_text: parsed.data.jd_paste_text,
       parsed_profile: parsed.data.parsed_profile,
       email: parsed.data.email,
-      pitchsage: parsed.data.pitchsage,
+      pitch: parsed.data.pitch,
     });
   } catch (err) {
     // VPS couldn't accept — mark the job failed so the client doesn't poll forever.

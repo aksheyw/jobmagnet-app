@@ -41,7 +41,7 @@ const BodySchema = z.discriminatedUnion("action", [
  *   that's merged into the existing pitch_section before save.
  * - skip:    sets pitch_section=null and pitch_reviewed=true.
  *
- * Either action unlocks the Download button (PitchSage hard gate).
+ * Either action unlocks the Download button (PitchAgent hard gate).
  *
  * NOTE: This endpoint currently has NO auth — anyone with the short_id can
  * flip pitch_reviewed. That's acceptable for the MVP demo (the short_id is

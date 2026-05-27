@@ -17,7 +17,7 @@ export interface JobContext {
     | "manager"
     | "director"
     | "vp";
-  pitchsage_suggested_stance: "builder" | "analyst" | "customer" | "strategist";
+  pitch_suggested_stance: "builder" | "analyst" | "customer" | "strategist";
   degraded: boolean;
 }
 
@@ -115,6 +115,6 @@ export interface Job {
   error: string | null;
   created_at: string;
   completed_at: string | null;
-  pitchsage_stance: string | null;
+  pitch_stance: string | null;
   short_id?: string;
 }

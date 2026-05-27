@@ -98,7 +98,7 @@ export default function StartPage() {
         }
 
         if (pitchEnabled && seed.trim()) {
-          body.pitchsage = {
+          body.pitch = {
             enabled: true,
             stance,
             seed: seed.trim(),

@@ -45,7 +45,7 @@ const FALLBACK: BrandStyleResult = {
 /**
  * Look up brand identity via Brandfetch. Caches successful responses in
  * Supabase `brand_cache` for 7 days. Returns null when Brandfetch
- * returns insufficient data (caller should fall back to Codex BrandSage).
+ * returns insufficient data (caller should fall back to Codex BrandAgent).
  */
 export async function fetchBrandfetch(
   domain: string,

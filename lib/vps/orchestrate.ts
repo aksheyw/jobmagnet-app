@@ -7,7 +7,7 @@ export interface OrchestrateRequestBody {
   jd_paste_text?: string;
   parsed_profile: Record<string, unknown>;
   email?: string;
-  pitchsage?: {
+  pitch?: {
     enabled: boolean;
     stance: "builder" | "analyst" | "customer" | "strategist";
     seed: string;
