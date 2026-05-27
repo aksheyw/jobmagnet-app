@@ -28,9 +28,10 @@ function resolveContactHref(contact: string | undefined, candidateName: string):
   }
 
   if (/linkedin\.com\/in\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
+    const href = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
     return {
-      primaryHref: trimmed,
-      secondaryHref: trimmed,
+      primaryHref: href,
+      secondaryHref: href,
       primaryLabel: "Connect on LinkedIn →",
       secondaryLabel: "View profile",
     };
