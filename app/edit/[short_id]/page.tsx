@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,25 +14,30 @@ import { Separator } from "@/components/ui/separator";
 import { PortfolioRender } from "@/components/portfolio/PortfolioRender";
 import { PitchEditor } from "@/components/editor/PitchEditor";
 import { DeployModal } from "@/components/editor/DeployModal";
-import type { Generation } from "@/lib/types";
+import type { Generation, CodexUsageRow } from "@/lib/types";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Wordmark } from "@/components/brand/BrandMark";
 
-const AI_SUGGESTIONS = [
-  {
-    id: "1",
-    text: "Highlight your biggest metric more prominently in the hero section",
-  },
-  {
-    id: "2",
-    text: "Consider tightening the cover letter intro to 2 sentences",
-  },
-  {
-    id: "3",
-    text: "Reorder Work section bullets to match JD priority keywords",
-  },
-];
+const AGENT_LABELS: Record<string, { label: string; icon: string }> = {
+  research: { label: "Research", icon: "🔍" },
+  brand: { label: "Brand", icon: "🎨" },
+  narrative: { label: "Narrative", icon: "✍️" },
+  pitch: { label: "Pitch", icon: "💡" },
+  code: { label: "Code", icon: "⚙️" },
+};
+
+function formatTokens(n: number) {
+  if (n < 1000) return String(n);
+  if (n < 1000000) return `${(n / 1000).toFixed(1)}k`;
+  return `${(n / 1000000).toFixed(1)}M`;
+}
+
+function formatDurationSec(ms: number) {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
 
 function LoadingSkeleton() {
   return (
@@ -60,30 +65,157 @@ function BrowserChrome({
     .replace(/\s+/g, "-")}-${companyDomain.replace(/\./g, "-")}`;
 
   return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+    <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-xl bg-white">
       {/* Browser bar */}
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-100 border-b border-slate-200">
+      <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-b from-slate-50 to-slate-100 border-b border-slate-200">
         <div className="flex gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-red-400" />
-          <span className="h-3 w-3 rounded-full bg-yellow-400" />
-          <span className="h-3 w-3 rounded-full bg-green-400" />
+          <span className="h-3 w-3 rounded-full bg-red-400 shadow-inner" />
+          <span className="h-3 w-3 rounded-full bg-yellow-400 shadow-inner" />
+          <span className="h-3 w-3 rounded-full bg-green-400 shadow-inner" />
         </div>
-        <div className="flex-1 mx-3">
-          <div className="rounded-md bg-white border border-slate-200 px-3 py-1 text-xs text-slate-400 font-mono truncate">
-            {slug}.example.com
+        <div className="hidden sm:flex items-center gap-1 ml-2 text-slate-400">
+          <button
+            type="button"
+            aria-label="back"
+            className="px-1 opacity-40 hover:opacity-60 cursor-default"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="forward"
+            className="px-1 opacity-40 hover:opacity-60 cursor-default"
+          >
+            ›
+          </button>
+        </div>
+        <div className="flex-1 mx-2">
+          <div className="rounded-md bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-600 font-mono flex items-center gap-2">
+            <span className="text-slate-400" aria-hidden>
+              🔒
+            </span>
+            <span className="truncate">
+              <span className="text-slate-400">https://</span>
+              {slug}
+              <span className="text-slate-400">.vercel.app</span>
+            </span>
           </div>
         </div>
+        <span className="hidden md:inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Preview
+        </span>
       </div>
       {/* Content scroll */}
       <div
-        className="overflow-y-auto"
-        style={{ maxHeight: "calc(100vh - 160px)" }}
+        className="overflow-y-auto bg-white"
+        style={{ maxHeight: "calc(100vh - 180px)" }}
       >
         {children}
       </div>
     </div>
   );
 }
+
+function TrailOfWork({ usage }: { readonly usage: CodexUsageRow[] }) {
+  if (!usage || usage.length === 0) {
+    return (
+      <div className="text-xs text-slate-400 italic">
+        Usage data not available for this generation.
+      </div>
+    );
+  }
+  const totalIn = usage.reduce((a, r) => a + (r.tokens_input ?? 0), 0);
+  const totalOut = usage.reduce((a, r) => a + (r.tokens_output ?? 0), 0);
+  const totalCached = usage.reduce(
+    (a, r) => a + (r.tokens_cached_input ?? 0),
+    0,
+  );
+  const totalMs = usage.reduce((a, r) => a + (r.duration_ms ?? 0), 0);
+
+  return (
+    <div className="space-y-2">
+      {/* Per-agent rows */}
+      <ul className="space-y-1">
+        {usage.map((row, i) => {
+          const meta = AGENT_LABELS[row.agent] ?? {
+            label: row.agent,
+            icon: "•",
+          };
+          const totalTokens =
+            (row.tokens_input ?? 0) + (row.tokens_output ?? 0);
+          return (
+            <li
+              key={`${row.agent}-${i}`}
+              className="flex items-center gap-2 text-xs"
+            >
+              <span className="w-4 text-center" aria-hidden>
+                {meta.icon}
+              </span>
+              <span className="font-medium text-slate-700 w-16">
+                {meta.label}
+              </span>
+              <span className="flex-1 text-right text-slate-500 font-mono tabular-nums">
+                {formatTokens(totalTokens)}t
+              </span>
+              <span className="w-12 text-right text-slate-500 font-mono tabular-nums">
+                {formatDurationSec(row.duration_ms)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Totals */}
+      <div className="border-t border-slate-100 pt-2 space-y-1">
+        <div className="flex justify-between text-[11px]">
+          <span className="text-slate-500">Tokens in / out</span>
+          <span className="font-mono tabular-nums text-slate-700">
+            {formatTokens(totalIn)} / {formatTokens(totalOut)}
+          </span>
+        </div>
+        {totalCached > 0 && (
+          <div className="flex justify-between text-[11px]">
+            <span className="text-slate-500">Cached read</span>
+            <span className="font-mono tabular-nums text-emerald-700">
+              {formatTokens(totalCached)}
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between text-[11px]">
+          <span className="text-slate-500">Total wall-clock</span>
+          <span className="font-mono tabular-nums text-slate-700">
+            {formatDurationSec(totalMs)}
+          </span>
+        </div>
+        <div className="flex justify-between text-[11px]">
+          <span className="text-slate-500">Billed</span>
+          <span className="font-semibold text-emerald-700">
+            $0 · Plus quota
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const AI_SUGGESTIONS = [
+  {
+    id: "1",
+    icon: "📌",
+    text: "Highlight your biggest metric more prominently in the hero",
+  },
+  {
+    id: "2",
+    icon: "✂️",
+    text: "Tighten the cover letter intro to 2 sentences",
+  },
+  {
+    id: "3",
+    icon: "🔀",
+    text: "Reorder Work bullets to match JD priority keywords",
+  },
+];
 
 export default function EditPage() {
   const params = useParams<{ short_id: string }>();
@@ -125,6 +257,9 @@ export default function EditPage() {
     fetchGeneration();
   }, [fetchGeneration]);
 
+  const usage = useMemo(() => generation?.codex_usage ?? [], [generation]);
+  const agentsRanCount = usage.length;
+
   if (notFound) {
     return (
       <div className="min-h-dvh bg-slate-50 flex flex-col items-center justify-center px-4">
@@ -156,11 +291,8 @@ export default function EditPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-1.5">
-            <div className="size-6 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600" />
-            <span className="text-sm font-semibold text-slate-800">
-              JobMagnet
-            </span>
+          <Link href="/" aria-label="JobMagnet home">
+            <Wordmark size="sm" />
           </Link>
           <span className="text-slate-300">/</span>
           <span className="text-sm text-slate-500 font-mono">{shortId}</span>
@@ -178,7 +310,7 @@ export default function EditPage() {
         {/* LEFT — Portfolio preview */}
         <div className="flex-1 min-w-0">
           {loading ? (
-            <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
+            <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white">
               <LoadingSkeleton />
             </div>
           ) : generation ? (
@@ -192,31 +324,29 @@ export default function EditPage() {
         </div>
 
         {/* RIGHT — Sidebar */}
-        <div className="lg:w-72 xl:w-80 flex-shrink-0 space-y-3">
-          {/* Codex usage */}
-          <div className="rounded-lg border border-slate-200 bg-white p-3">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-              Codex usage
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-slate-800">5</span>
-              <span className="text-xs text-slate-400">agents ran</span>
+        <div className="lg:w-80 xl:w-[22rem] flex-shrink-0 space-y-3">
+          {/* Trail of work — real Codex usage */}
+          <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                Trail of work
+              </p>
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                <span className="h-1 w-1 rounded-full bg-emerald-500" />
+                {agentsRanCount}/5
+              </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              ChatGPT Plus quota · $0 spend
-            </p>
+            <TrailOfWork usage={usage} />
           </div>
 
-          <Separator />
-
           {/* Pitch status */}
-          <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              PitchSage
+          <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2">
+            <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              Pitch agent
             </p>
             {!hasPitch && (
               <Badge variant="secondary" className="text-xs">
-                No pitch in this generation
+                Not included in this generation
               </Badge>
             )}
             {hasPitch && needsPitchReview && (
@@ -236,11 +366,9 @@ export default function EditPage() {
             )}
           </div>
 
-          <Separator />
-
           {/* AI suggestions */}
-          <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
+            <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
               AI suggestions
             </p>
             {loading ? (
@@ -249,22 +377,25 @@ export default function EditPage() {
                 <div className="h-3 rounded bg-slate-100 animate-pulse w-4/5" />
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-1.5">
                 {AI_SUGGESTIONS.map((s) => (
                   <li
                     key={s.id}
-                    className="flex items-start gap-2 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-2"
+                    className="group flex items-start gap-2 rounded-lg border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-indigo-200 px-2.5 py-2 transition-all cursor-not-allowed"
                   >
                     <span className="text-sm flex-shrink-0" aria-hidden>
-                      ✦
+                      {s.icon}
                     </span>
-                    <p className="text-xs text-slate-600 leading-relaxed">
+                    <p className="text-xs text-slate-700 leading-snug">
                       {s.text}
                     </p>
                   </li>
                 ))}
               </ul>
             )}
+            <p className="text-[10px] text-slate-400 italic pt-1">
+              Apply-to-resume coming Day 4
+            </p>
           </div>
 
           <Separator />
@@ -276,7 +407,7 @@ export default function EditPage() {
                 <Button variant="outline" className="w-full" disabled />
               }
             >
-              Regenerate
+              Regenerate entire portfolio
             </TooltipTrigger>
             <TooltipContent>
               <p>Coming Day 4</p>

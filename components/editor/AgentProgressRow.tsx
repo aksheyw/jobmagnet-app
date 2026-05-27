@@ -16,28 +16,28 @@ const AGENT_META: Record<
   { label: string; caption: string; icon: string }
 > = {
   research: {
-    label: "ResearchSage",
-    caption: "Fetching job context, company signals, and JD structure",
+    label: "Research agent",
+    caption: "Reading the JD · scraping company signals · inferring pitch stance",
     icon: "🔍",
   },
   brand: {
-    label: "BrandSage",
-    caption: "Pulling brand colors and fonts from Brandfetch",
+    label: "Brand agent",
+    caption: "Pulling real brand colors + fonts via Brandfetch",
     icon: "🎨",
   },
   narrative: {
-    label: "NarrativeSage",
-    caption: "Writing your headline, about section, and cover letter",
+    label: "Narrative agent",
+    caption: "Writing your headline, About, cover letter, and bullets",
     icon: "✍️",
   },
   pitch: {
-    label: "PitchSage",
-    caption: "Building your PM-style pitch deck",
+    label: "Pitch agent",
+    caption: "Drafting your PM-style pitch with stance-aware evidence",
     icon: "💡",
   },
   code: {
-    label: "CodeSage",
-    caption: "Generating and zipping your portfolio site",
+    label: "Code agent",
+    caption: "Generating Next.js project · zipping for self-deploy",
     icon: "⚙️",
   },
 };
@@ -72,8 +72,8 @@ function StateDot({ state, visible }: { state: AgentState; visible: boolean }) {
         aria-label="running"
         className="relative flex h-2.5 w-2.5 flex-shrink-0"
       >
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500" />
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500" />
       </span>
     );
   }
@@ -117,9 +117,9 @@ export function AgentProgressRow({
 
   return (
     <div
-      className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-all duration-300 ${
-        state === "running" ? "bg-blue-50" : ""
-      } ${state === "done" ? "bg-emerald-50/50" : ""} ${
+      className={`flex items-center gap-3 py-3 px-3.5 transition-all duration-300 ${
+        state === "running" ? "bg-indigo-50/70" : ""
+      } ${state === "done" ? "bg-emerald-50/40" : ""} ${
         state === "failed" ? "bg-red-50" : ""
       }`}
     >
@@ -131,20 +131,34 @@ export function AgentProgressRow({
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-800">{meta.label}</p>
-        <p className="text-xs text-slate-400 truncate">{meta.caption}</p>
+        <p className="text-xs text-slate-500 truncate">{meta.caption}</p>
       </div>
 
       <div className="flex-shrink-0 text-right">
         {state === "done" && durationMs !== undefined && (
-          <span className="text-xs text-emerald-600 font-medium">
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-700 font-medium tabular-nums">
+            <svg
+              className="h-3 w-3"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.704 5.296a1 1 0 0 1 0 1.408l-7.999 8a1 1 0 0 1-1.41 0l-4-4a1 1 0 1 1 1.41-1.408l3.295 3.293 7.294-7.293a1 1 0 0 1 1.41 0z"
+                clipRule="evenodd"
+              />
+            </svg>
             {formatDuration(durationMs)}
           </span>
         )}
         {state === "running" && (
-          <span className="text-xs text-blue-500 font-medium">running…</span>
+          <span className="text-xs text-indigo-600 font-medium">
+            running…
+          </span>
         )}
         {state === "failed" && (
-          <span className="text-xs text-red-500 font-medium">failed</span>
+          <span className="text-xs text-red-600 font-medium">failed</span>
         )}
         {state === "queued" && (
           <span className="text-xs text-slate-300">queued</span>

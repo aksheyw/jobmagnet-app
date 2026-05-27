@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { AgentProgressRow } from "@/components/editor/AgentProgressRow";
 import type { Job, AgentStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Wordmark } from "@/components/brand/BrandMark";
 
 const AGENT_ORDER = ["research", "brand", "narrative", "pitch", "code"];
 
@@ -41,12 +42,20 @@ export default function ProgressPage({ params }: ProgressPageProps) {
   const [job, setJob] = useState<Job | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [startedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Resolve async params
   useEffect(() => {
     params.then((p) => setJobId(p.job_id));
   }, [params]);
+
+  // Wall-clock ticker for live elapsed
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 200);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (!jobId) return;
@@ -90,6 +99,32 @@ export default function ProgressPage({ params }: ProgressPageProps) {
     };
   }, [jobId, router, searchParams]);
 
+  const agentStates = useMemo(() => job?.agent_states ?? {}, [job]);
+
+  const completedAgents = useMemo(
+    () =>
+      AGENT_ORDER.filter(
+        (a) => resolveAgentState(agentStates[a] as AgentStatus | undefined) === "done",
+      ).length,
+    [agentStates],
+  );
+
+  const runningAgent = useMemo(
+    () =>
+      AGENT_ORDER.find(
+        (a) =>
+          resolveAgentState(agentStates[a] as AgentStatus | undefined) ===
+          "running",
+      ) ?? null,
+    [agentStates],
+  );
+
+  const elapsedSec = Math.max(0, Math.floor((now - startedAt) / 1000));
+  const progressPct = Math.min(
+    100,
+    Math.round((completedAgents / AGENT_ORDER.length) * 100),
+  );
+
   if (notFound) {
     return (
       <ErrorState
@@ -112,40 +147,75 @@ export default function ProgressPage({ params }: ProgressPageProps) {
     );
   }
 
-  const agentStates = job?.agent_states ?? {};
-
   return (
-    <div className="min-h-dvh bg-slate-50 flex flex-col">
+    <div className="min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
       <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="size-7 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600" />
-          <span className="text-sm font-semibold text-slate-800">
-            JobMagnet
-          </span>
+        <Link href="/" aria-label="JobMagnet home">
+          <Wordmark size="sm" />
         </Link>
+        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-mono tabular-nums">
+          <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+          {String(Math.floor(elapsedSec / 60)).padStart(2, "0")}:
+          {String(elapsedSec % 60).padStart(2, "0")}
+        </span>
       </nav>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-16">
-        <div className="w-full max-w-lg space-y-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-xl space-y-7">
           {/* Header */}
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 text-sm text-slate-500 mb-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 mb-4">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
               </span>
               Codex agents running
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-2">
               Generating your portfolio…
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Usually done in under 60 seconds
+            <p className="text-sm text-slate-500">
+              {runningAgent ? (
+                <>
+                  Currently:{" "}
+                  <span className="font-medium text-slate-700">
+                    {runningAgent} agent
+                  </span>{" "}
+                  &middot; usually done in under 96 seconds
+                </>
+              ) : (
+                <>Usually done in under 96 seconds</>
+              )}
             </p>
           </div>
 
+          {/* Progress bar */}
+          <div>
+            <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+              <span>
+                <span className="font-semibold text-slate-700">
+                  {completedAgents}
+                </span>{" "}
+                / {AGENT_ORDER.length} agents done
+              </span>
+              <span className="font-mono tabular-nums">{progressPct}%</span>
+            </div>
+            <div
+              className="h-2 rounded-full bg-slate-100 overflow-hidden"
+              role="progressbar"
+              aria-valuenow={progressPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500 ease-out"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+
           {/* Agent rows */}
-          <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
             {AGENT_ORDER.map((agent) => {
               const status = agentStates[agent] as AgentStatus | undefined;
               const state = resolveAgentState(status);
@@ -162,10 +232,19 @@ export default function ProgressPage({ params }: ProgressPageProps) {
           </div>
 
           {/* Reassurance */}
-          <p className="text-center text-xs text-slate-400">
-            Running on Akshey&apos;s ChatGPT Plus via the Codex SDK. Zero API
-            spend.
-          </p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 text-center">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Each agent runs on{" "}
+              <span className="font-medium text-slate-700">
+                ChatGPT Plus
+              </span>{" "}
+              via the{" "}
+              <span className="font-medium text-slate-700">Codex SDK</span>{" "}
+              over a Hostinger VPS bridge.{" "}
+              <span className="text-emerald-700 font-medium">$0</span> in API
+              spend.
+            </p>
+          </div>
 
           {!job && (
             <div className="text-center">
@@ -190,8 +269,10 @@ function ErrorState({
   return (
     <div className="min-h-dvh bg-slate-50 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md text-center space-y-4">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <span className="text-xl">✕</span>
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+          <span className="text-2xl" aria-hidden>
+            ✕
+          </span>
         </div>
         <h1 className="text-xl font-bold text-slate-900">{title}</h1>
         <p className="text-sm text-slate-500">{message}</p>

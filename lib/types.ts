@@ -70,6 +70,16 @@ export interface PitchSection {
   confidence: number;
 }
 
+export interface CodexUsageRow {
+  agent: string;
+  tokens_input: number;
+  tokens_output: number;
+  tokens_cached_input: number;
+  tokens_reasoning_output: number;
+  duration_ms: number;
+  called_at: string;
+}
+
 export interface Generation {
   id: string;
   short_id: string;
@@ -84,6 +94,7 @@ export interface Generation {
   zip_generated_at: string | null;
   created_at: string;
   download_count: number;
+  codex_usage?: CodexUsageRow[];
 }
 
 export type AgentState = "queued" | "running" | "done" | "failed";

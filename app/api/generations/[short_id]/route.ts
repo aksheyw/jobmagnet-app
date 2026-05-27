@@ -5,6 +5,16 @@ export const runtime = "nodejs";
 
 const SHORT_ID_REGEX = /^[a-zA-Z0-9_-]{4,32}$/;
 
+interface CodexUsageRow {
+  agent: string;
+  tokens_input: number;
+  tokens_output: number;
+  tokens_cached_input: number;
+  tokens_reasoning_output: number;
+  duration_ms: number;
+  called_at: string;
+}
+
 /**
  * GET /api/generations/<short_id> — return the full generated content for
  * the framed editor + iframe preview.
@@ -50,8 +60,21 @@ export async function GET(
     );
   }
 
+  // Fetch codex_usage rows for "trail of work" sidebar. Non-fatal if it fails.
+  let codex_usage: CodexUsageRow[] = [];
+  if (gen.job_id) {
+    const { data: usage } = await supabase
+      .from("codex_usage")
+      .select(
+        "agent, tokens_input, tokens_output, tokens_cached_input, tokens_reasoning_output, duration_ms, called_at",
+      )
+      .eq("job_id", gen.job_id)
+      .order("called_at", { ascending: true });
+    codex_usage = (usage ?? []) as CodexUsageRow[];
+  }
+
   return NextResponse.json({
     ok: true,
-    generation: gen,
+    generation: { ...gen, codex_usage },
   });
 }

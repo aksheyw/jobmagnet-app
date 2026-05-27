@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { Wordmark } from "@/components/brand/BrandMark";
 
 type Stance = "builder" | "analyst" | "customer" | "strategist";
 
@@ -19,27 +19,39 @@ const STANCE_OPTIONS: Array<{
   value: Stance;
   label: string;
   description: string;
+  icon: string;
 }> = [
   {
     value: "builder",
     label: "Builder",
     description: "What you'd ship — a concrete product feature or improvement.",
+    icon: "🛠️",
   },
   {
     value: "analyst",
     label: "Analyst",
     description: "What you'd investigate — metrics, gaps, or strategic bets.",
+    icon: "📊",
   },
   {
     value: "customer",
     label: "Customer",
     description: "Where you'd lean in — pain points from a user's perspective.",
+    icon: "🎯",
   },
   {
     value: "strategist",
     label: "Strategist",
     description: "What you'd propose — positioning, market, or org leverage.",
+    icon: "🧭",
   },
+];
+
+const JD_EXAMPLES = [
+  "https://stripe.com/jobs/listing/...",
+  "https://jobs.lever.co/anthropic/...",
+  "https://boards.greenhouse.io/openai/...",
+  "https://www.linkedin.com/jobs/view/...",
 ];
 
 export default function StartPage() {
@@ -121,69 +133,87 @@ export default function StartPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-slate-50">
+    <div className="min-h-dvh bg-gradient-to-b from-slate-50 to-white">
       {/* Top nav */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="size-7 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600" />
-          <span className="text-sm font-semibold text-slate-800">JobMagnet</span>
+      <nav className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur border-b border-slate-100 sticky top-0 z-10">
+        <Link href="/" aria-label="JobMagnet home">
+          <Wordmark size="sm" />
         </Link>
-        <span className="text-xs text-slate-400">Free during hackathon</span>
+        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Free during hackathon
+        </span>
       </nav>
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+      <div className="max-w-2xl mx-auto px-4 py-10 lg:py-14">
+        <div className="mb-9">
+          <p className="text-xs font-semibold text-indigo-600 uppercase tracking-widest mb-2">
+            ~96 seconds · no account needed
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-2">
             Generate your portfolio
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Takes ~60 seconds. No account needed.
+          <p className="text-base text-slate-500">
+            Four short sections. Skip the optional ones if you&apos;re in a
+            hurry.
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Section A — Profile */}
-          <Section label="A" title="Your profile">
+          <Section
+            label="A"
+            icon="👤"
+            title="Your profile"
+            subtitle="Required · paste from LinkedIn export or About page"
+          >
             <div className="space-y-2">
-              <Label htmlFor="profile" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="profile" className="sr-only">
                 Paste your LinkedIn About + Experience
               </Label>
               <Textarea
                 id="profile"
                 rows={12}
-                placeholder={`Paste the text from your LinkedIn profile — your About section, recent roles, and key accomplishments.
+                placeholder={`Paste your LinkedIn About + Experience sections.
 
 Example:
-Senior PM at Stripe. Previously led Growth at Dropbox (0→1M users). Built checkout flows processed by 3M+ merchants. Obsessed with reducing activation friction.
+Senior PM at Stripe. Previously led Growth at Dropbox (0 → 1M users). Built checkout flows processed by 3M+ merchants. Obsessed with reducing activation friction.
 
-Work Experience:
-Stripe · Senior Product Manager · 2022–Present
-• Redesigned onboarding flow, reducing time-to-first-charge by 40%
-• Led 6-person squad shipping Radar ML fraud rules...`}
+Work Experience
+Stripe · Senior Product Manager · 2022 – Present
+• Redesigned onboarding flow, reduced time-to-first-charge by 40%
+• Led 6-person squad shipping Radar ML fraud rules
+...`}
                 value={profile}
                 onChange={(e) => setProfile(e.target.value)}
                 className="font-mono text-sm resize-none bg-white"
               />
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-400 tabular-nums">
                   {profile.length} chars
                   {profile.length < 200 && profile.length > 0 && (
-                    <span className="text-amber-500 ml-1">
-                      (need {200 - profile.length} more)
+                    <span className="text-amber-600 ml-1.5">
+                      ({200 - profile.length} more needed)
                     </span>
                   )}
                 </span>
                 {profile.length >= 200 && (
-                  <span className="text-xs text-emerald-600 font-medium">Good to go</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Good to go
+                  </span>
                 )}
               </div>
             </div>
           </Section>
 
-          <Separator />
-
           {/* Section B — Job */}
-          <Section label="B" title="The job">
+          <Section
+            label="B"
+            icon="🎯"
+            title="The job"
+            subtitle="Required · paste the URL or the full JD text"
+          >
             <Tabs
               value={jdTab}
               onValueChange={(v) => setJdTab(v as "url" | "paste")}
@@ -193,8 +223,8 @@ Stripe · Senior Product Manager · 2022–Present
                 <TabsTrigger value="paste">Paste JD text</TabsTrigger>
               </TabsList>
               <TabsContent value="url">
-                <div className="space-y-2">
-                  <Label htmlFor="jd-url" className="text-sm font-medium text-slate-700">
+                <div className="space-y-3">
+                  <Label htmlFor="jd-url" className="sr-only">
                     Job posting URL
                   </Label>
                   <Input
@@ -203,17 +233,28 @@ Stripe · Senior Product Manager · 2022–Present
                     placeholder="https://stripe.com/jobs/listing/..."
                     value={jdUrl}
                     onChange={(e) => setJdUrl(e.target.value)}
-                    className="bg-white"
+                    className="bg-white text-sm"
                   />
-                  <p className="text-xs text-slate-400">
-                    We&apos;ll scrape the JD for you. Works with Greenhouse,
-                    Lever, Workday, LinkedIn, and direct links.
-                  </p>
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1.5">
+                      Works with:
+                    </p>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                      {JD_EXAMPLES.map((ex) => (
+                        <li
+                          key={ex}
+                          className="text-[11px] text-slate-500 font-mono truncate"
+                        >
+                          <span className="text-slate-300">›</span> {ex}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </TabsContent>
               <TabsContent value="paste">
                 <div className="space-y-2">
-                  <Label htmlFor="jd-text" className="text-sm font-medium text-slate-700">
+                  <Label htmlFor="jd-text" className="sr-only">
                     Paste job description
                   </Label>
                   <Textarea
@@ -224,11 +265,11 @@ Stripe · Senior Product Manager · 2022–Present
                     onChange={(e) => setJdText(e.target.value)}
                     className="font-mono text-sm resize-none bg-white"
                   />
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-400 tabular-nums">
                     {jdText.length} chars
                     {jdText.length > 0 && jdText.length < 40 && (
-                      <span className="text-amber-500 ml-1">
-                        (need {40 - jdText.length} more)
+                      <span className="text-amber-600 ml-1.5">
+                        ({40 - jdText.length} more needed)
                       </span>
                     )}
                   </span>
@@ -237,12 +278,15 @@ Stripe · Senior Product Manager · 2022–Present
             </Tabs>
           </Section>
 
-          <Separator />
-
           {/* Section C — Email */}
-          <Section label="C" title="Email (optional)">
+          <Section
+            label="C"
+            icon="✉️"
+            title="Email"
+            subtitle="Optional · skip if you don't need to come back later"
+          >
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="email" className="sr-only">
                 Your email address
               </Label>
               <Input
@@ -251,40 +295,43 @@ Stripe · Senior Product Manager · 2022–Present
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white"
+                className="bg-white text-sm"
               />
               <p className="text-xs text-slate-400">
-                We&apos;ll email you a link to come back and edit later. Zero
+                We&apos;ll email you a magic link to come back and edit. Zero
                 spam, no account created.
               </p>
             </div>
           </Section>
 
-          <Separator />
-
-          {/* Section D — PitchSage */}
-          <Section label="D" title="PitchSage (optional)">
+          {/* Section D — Pitch agent */}
+          <Section
+            label="D"
+            icon="💡"
+            title="Pitch agent"
+            subtitle="Optional · adds a PM-style pitch (problem · hypothesis · solution · metrics · tradeoffs)"
+          >
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    Add a PM-style pitch to your portfolio
+                  <p className="text-sm font-medium text-slate-800">
+                    Add a tailored pitch
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    5 pages: problem, hypothesis, solution, metrics, tradeoffs
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    The big differentiator vs a generic resume site.
                   </p>
                 </div>
                 <Switch
                   checked={pitchEnabled}
                   onCheckedChange={setPitchEnabled}
-                  aria-label="Enable PitchSage"
+                  aria-label="Enable Pitch agent"
                 />
               </div>
 
               {pitchEnabled && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-5">
+                <div className="rounded-lg border border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-white p-4 space-y-5">
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-3 block">
+                    <Label className="text-sm font-medium text-slate-800 mb-3 block">
                       Choose your stance
                     </Label>
                     <RadioGroup
@@ -296,10 +343,10 @@ Stripe · Senior Product Manager · 2022–Present
                         <label
                           key={opt.value}
                           htmlFor={`stance-${opt.value}`}
-                          className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${
+                          className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-all ${
                             stance === opt.value
-                              ? "border-violet-500 bg-violet-50"
-                              : "border-slate-200 bg-white hover:bg-slate-50"
+                              ? "border-indigo-500 bg-white shadow-sm ring-2 ring-indigo-100"
+                              : "border-slate-200 bg-white hover:border-slate-300"
                           }`}
                         >
                           <RadioGroupItem
@@ -307,11 +354,16 @@ Stripe · Senior Product Manager · 2022–Present
                             value={opt.value}
                             className="mt-0.5"
                           />
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">
-                              {opt.label}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm" aria-hidden>
+                                {opt.icon}
+                              </span>
+                              <p className="text-sm font-semibold text-slate-800">
+                                {opt.label}
+                              </p>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 leading-snug">
                               {opt.description}
                             </p>
                           </div>
@@ -321,22 +373,30 @@ Stripe · Senior Product Manager · 2022–Present
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="seed" className="text-sm font-medium text-slate-700">
+                    <Label
+                      htmlFor="seed"
+                      className="text-sm font-medium text-slate-800"
+                    >
                       Your seed observation
                     </Label>
                     <Textarea
                       id="seed"
                       rows={3}
-                      placeholder="What's one thing you noticed about this company's product? Be specific. (1–3 sentences)"
+                      placeholder="What's one specific thing you noticed about this company's product? (1–3 sentences)"
                       value={seed}
                       onChange={(e) => setSeed(e.target.value)}
                       className="bg-white text-sm resize-none"
                     />
-                    <p className="text-xs text-slate-400">
-                      e.g. "Stripe's checkout mobile UX has friction at the
-                      card-number step — the keyboard layout forces three taps to
-                      enter expiry."
-                    </p>
+                    <div className="rounded-md bg-slate-50 border border-slate-100 px-3 py-2">
+                      <p className="text-[11px] text-slate-500 leading-snug">
+                        <span className="font-semibold text-slate-600">
+                          Example:
+                        </span>{" "}
+                        &ldquo;Stripe&apos;s mobile checkout has friction at
+                        the card-number step — the keyboard layout forces three
+                        taps to enter expiry.&rdquo;
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -345,21 +405,29 @@ Stripe · Senior Product Manager · 2022–Present
         </div>
 
         {/* Submit */}
-        <div className="mt-8 space-y-3">
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            size="lg"
-            className="w-full text-base"
-          >
-            {isPending ? "Submitting…" : "Generate my portfolio →"}
-          </Button>
-          {!canSubmit && !isPending && (
-            <p className="text-xs text-slate-400 text-center">
-              {profile.trim().length < 200 && "Profile must be 200+ chars. "}
-              {!jdProvided && "Job description required."}
-            </p>
-          )}
+        <div className="mt-10 space-y-3 sticky bottom-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-lg p-3">
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              size="lg"
+              className="w-full text-base"
+            >
+              {isPending ? "Submitting…" : "Generate my portfolio →"}
+            </Button>
+            {!canSubmit && !isPending && (
+              <p className="text-xs text-slate-400 text-center mt-2">
+                {profile.trim().length < 200 && "Section A needs 200+ chars. "}
+                {!jdProvided && "Section B needs a JD."}
+              </p>
+            )}
+            {canSubmit && (
+              <p className="text-xs text-slate-500 text-center mt-2">
+                Generation takes ~96 seconds. You&apos;ll see live progress on
+                the next screen.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -368,20 +436,37 @@ Stripe · Senior Product Manager · 2022–Present
 
 function Section({
   label,
+  icon,
   title,
+  subtitle,
   children,
 }: {
   readonly label: string;
+  readonly icon: string;
   readonly title: string;
+  readonly subtitle: string;
   readonly children: React.ReactNode;
 }) {
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-4">
-        <span className="flex-shrink-0 inline-flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 lg:p-6 transition-shadow hover:shadow-sm">
+      <div className="flex items-start gap-3 mb-5">
+        <span
+          className="flex-shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-base font-bold text-indigo-700 ring-1 ring-indigo-100"
+          aria-hidden
+        >
           {label}
         </span>
-        <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base leading-none" aria-hidden>
+              {icon}
+            </span>
+            <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+            {subtitle}
+          </p>
+        </div>
       </div>
       {children}
     </div>
