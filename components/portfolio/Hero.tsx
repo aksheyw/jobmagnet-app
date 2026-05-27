@@ -1,13 +1,67 @@
-import type { BrandStyle, Narrative } from "@/lib/types";
+import type { BrandStyle } from "@/lib/types";
 
 interface HeroProps {
   readonly candidateName: string;
+  readonly candidateContact?: string;
   readonly headline: string;
   readonly companyName: string;
   readonly brandStyle: BrandStyle;
 }
 
-export function Hero({ candidateName, headline, companyName, brandStyle }: HeroProps) {
+function resolveContactHref(contact: string | undefined, candidateName: string): {
+  primaryHref: string;
+  secondaryHref: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+} {
+  const trimmed = contact?.trim() ?? "";
+  const subject = encodeURIComponent(`Let's connect — ${candidateName}`);
+
+  if (!trimmed) {
+    const fallback = `mailto:?subject=${subject}`;
+    return {
+      primaryHref: fallback,
+      secondaryHref: fallback,
+      primaryLabel: "Schedule a call →",
+      secondaryLabel: "Get in touch",
+    };
+  }
+
+  if (/linkedin\.com\/in\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
+    return {
+      primaryHref: trimmed,
+      secondaryHref: trimmed,
+      primaryLabel: "Connect on LinkedIn →",
+      secondaryLabel: "View profile",
+    };
+  }
+
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    const mailto = `mailto:${trimmed}?subject=${subject}`;
+    return {
+      primaryHref: mailto,
+      secondaryHref: mailto,
+      primaryLabel: "Schedule a call →",
+      secondaryLabel: "Get in touch",
+    };
+  }
+
+  const fallback = `mailto:?subject=${subject}`;
+  return {
+    primaryHref: fallback,
+    secondaryHref: fallback,
+    primaryLabel: "Schedule a call →",
+    secondaryLabel: "Get in touch",
+  };
+}
+
+export function Hero({
+  candidateName,
+  candidateContact,
+  headline,
+  companyName,
+  brandStyle,
+}: HeroProps) {
   const initials = candidateName
     .split(" ")
     .map((n) => n[0])
@@ -15,10 +69,15 @@ export function Hero({ candidateName, headline, companyName, brandStyle }: HeroP
     .slice(0, 2)
     .toUpperCase();
 
-  const mailtoHref = `mailto:?subject=${encodeURIComponent(`Let's connect — ${candidateName}`)}`;
+  const { primaryHref, secondaryHref, primaryLabel, secondaryLabel } =
+    resolveContactHref(candidateContact, candidateName);
 
-  // Highlight company name in headline
   const parts = headline.split(companyName);
+
+  const externalLink = /^https?:\/\//i.test(primaryHref);
+  const linkRelAttrs = externalLink
+    ? { target: "_blank" as const, rel: "noopener noreferrer" }
+    : {};
 
   return (
     <section
@@ -57,17 +116,19 @@ export function Hero({ candidateName, headline, companyName, brandStyle }: HeroP
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <a
-          href={mailtoHref}
+          href={primaryHref}
+          {...linkRelAttrs}
           className="inline-flex items-center rounded-md px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
           style={{ backgroundColor: brandStyle.primary }}
         >
-          Schedule a call &rarr;
+          {primaryLabel}
         </a>
         <a
-          href={mailtoHref}
+          href={secondaryHref}
+          {...linkRelAttrs}
           className="inline-flex items-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50"
         >
-          Get in touch
+          {secondaryLabel}
         </a>
       </div>
     </section>

@@ -15,6 +15,17 @@ import { Wordmark } from "@/components/brand/BrandMark";
 
 type Stance = "builder" | "analyst" | "customer" | "strategist";
 
+interface WorkEntryDraft {
+  company: string;
+  title: string;
+  dates: string;
+  bullets: string;
+}
+
+function emptyWorkEntry(): WorkEntryDraft {
+  return { company: "", title: "", dates: "", bullets: "" };
+}
+
 const STANCE_OPTIONS: Array<{
   value: Stance;
   label: string;
@@ -59,7 +70,13 @@ export default function StartPage() {
   const [isPending, startTransition] = useTransition();
 
   // Section A
+  const [candidateName, setCandidateName] = useState("");
+  const [candidateContact, setCandidateContact] = useState("");
   const [profile, setProfile] = useState("");
+  const [showWorkEntries, setShowWorkEntries] = useState(false);
+  const [workEntries, setWorkEntries] = useState<WorkEntryDraft[]>([
+    emptyWorkEntry(),
+  ]);
 
   // Section B
   const [jdTab, setJdTab] = useState<"url" | "paste">("url");
@@ -78,13 +95,59 @@ export default function StartPage() {
     jdTab === "url" ? jdUrl.trim().startsWith("http") : jdText.trim().length >= 40;
   const canSubmit = profile.trim().length >= 200 && jdProvided && !isPending;
 
+  function updateWorkEntry(index: number, patch: Partial<WorkEntryDraft>) {
+    setWorkEntries((entries) =>
+      entries.map((e, i) => (i === index ? { ...e, ...patch } : e)),
+    );
+  }
+
+  function addWorkEntry() {
+    setWorkEntries((entries) => [...entries, emptyWorkEntry()]);
+  }
+
+  function removeWorkEntry(index: number) {
+    setWorkEntries((entries) =>
+      entries.length <= 1 ? entries : entries.filter((_, i) => i !== index),
+    );
+  }
+
   function handleSubmit() {
     if (!canSubmit) return;
 
     startTransition(async () => {
       try {
+        const profilePayload: Record<string, unknown> = {
+          raw_text: profile.trim(),
+        };
+
+        if (candidateName.trim()) {
+          profilePayload.name = candidateName.trim();
+        }
+
+        if (candidateContact.trim()) {
+          profilePayload.contact = candidateContact.trim();
+        }
+
+        if (showWorkEntries) {
+          const validEntries = workEntries
+            .map((e) => ({
+              company: e.company.trim(),
+              title: e.title.trim(),
+              dates: e.dates.trim(),
+              bullets: e.bullets
+                .split("\n")
+                .map((b) => b.trim())
+                .filter((b) => b.length > 0),
+            }))
+            .filter((e) => e.company.length > 0 || e.title.length > 0);
+
+          if (validEntries.length > 0) {
+            profilePayload.work_history = validEntries;
+          }
+        }
+
         const body: Record<string, unknown> = {
-          parsed_profile: { raw_text: profile.trim() },
+          parsed_profile: profilePayload,
         };
 
         if (jdTab === "url") {
@@ -167,14 +230,63 @@ export default function StartPage() {
             title="Your profile"
             subtitle="Required · paste from LinkedIn export or About page"
           >
-            <div className="space-y-2">
-              <Label htmlFor="profile" className="sr-only">
-                Paste your LinkedIn About + Experience
-              </Label>
-              <Textarea
-                id="profile"
-                rows={12}
-                placeholder={`Paste your LinkedIn About + Experience sections.
+            <div className="space-y-5">
+              {/* Name + contact (improves portfolio accuracy) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="candidate-name"
+                    className="text-xs font-medium text-slate-700"
+                  >
+                    Your name
+                    <span className="ml-1 text-slate-400 font-normal">
+                      (recommended)
+                    </span>
+                  </Label>
+                  <Input
+                    id="candidate-name"
+                    type="text"
+                    placeholder="e.g. Akshey Walia"
+                    value={candidateName}
+                    onChange={(e) => setCandidateName(e.target.value)}
+                    className="bg-white text-sm"
+                    autoComplete="name"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="candidate-contact"
+                    className="text-xs font-medium text-slate-700"
+                  >
+                    Your contact
+                    <span className="ml-1 text-slate-400 font-normal">
+                      (for portfolio CTAs)
+                    </span>
+                  </Label>
+                  <Input
+                    id="candidate-contact"
+                    type="text"
+                    placeholder="LinkedIn URL or you@email.com"
+                    value={candidateContact}
+                    onChange={(e) => setCandidateContact(e.target.value)}
+                    className="bg-white text-sm"
+                    autoComplete="url"
+                  />
+                </div>
+              </div>
+
+              {/* Profile textarea */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="profile"
+                  className="text-xs font-medium text-slate-700"
+                >
+                  Paste your LinkedIn About + Experience
+                </Label>
+                <Textarea
+                  id="profile"
+                  rows={12}
+                  placeholder={`Paste your LinkedIn About + Experience sections.
 
 Example:
 Senior PM at Stripe. Previously led Growth at Dropbox (0 → 1M users). Built checkout flows processed by 3M+ merchants. Obsessed with reducing activation friction.
@@ -184,24 +296,132 @@ Stripe · Senior Product Manager · 2022 – Present
 • Redesigned onboarding flow, reduced time-to-first-charge by 40%
 • Led 6-person squad shipping Radar ML fraud rules
 ...`}
-                value={profile}
-                onChange={(e) => setProfile(e.target.value)}
-                className="font-mono text-sm resize-none bg-white"
-              />
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-400 tabular-nums">
-                  {profile.length} chars
-                  {profile.length < 200 && profile.length > 0 && (
-                    <span className="text-amber-600 ml-1.5">
-                      ({200 - profile.length} more needed)
+                  value={profile}
+                  onChange={(e) => setProfile(e.target.value)}
+                  className="font-mono text-sm resize-none bg-white"
+                />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-400 tabular-nums">
+                    {profile.length} chars
+                    {profile.length < 200 && profile.length > 0 && (
+                      <span className="text-amber-600 ml-1.5">
+                        ({200 - profile.length} more needed)
+                      </span>
+                    )}
+                  </span>
+                  {profile.length >= 200 && (
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Good to go
                     </span>
                   )}
-                </span>
-                {profile.length >= 200 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Good to go
+                </div>
+              </div>
+
+              {/* Structured work entries (optional) */}
+              <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/60 p-3.5">
+                <button
+                  type="button"
+                  onClick={() => setShowWorkEntries((v) => !v)}
+                  className="flex items-center justify-between w-full text-left"
+                  aria-expanded={showWorkEntries}
+                  aria-controls="work-entries-block"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">
+                      📋 Add structured work entries
+                      <span className="ml-1.5 text-xs font-normal text-slate-500">
+                        (optional · improves accuracy)
+                      </span>
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+                      Skip if your paste above already lists every role. Add
+                      here only if you want guaranteed-clean roles in the
+                      portfolio.
+                    </p>
+                  </div>
+                  <span
+                    className="text-slate-400 text-sm flex-shrink-0 ml-3"
+                    aria-hidden
+                  >
+                    {showWorkEntries ? "−" : "+"}
                   </span>
+                </button>
+
+                {showWorkEntries && (
+                  <div id="work-entries-block" className="mt-4 space-y-4">
+                    {workEntries.map((entry, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-md border border-slate-200 bg-white p-3 space-y-2.5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            Role {idx + 1}
+                          </p>
+                          {workEntries.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeWorkEntry(idx)}
+                              className="text-[11px] text-slate-400 hover:text-rose-600 transition-colors"
+                              aria-label={`Remove role ${idx + 1}`}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Company"
+                            value={entry.company}
+                            onChange={(e) =>
+                              updateWorkEntry(idx, { company: e.target.value })
+                            }
+                            className="bg-white text-sm"
+                            aria-label={`Role ${idx + 1} company`}
+                          />
+                          <Input
+                            type="text"
+                            placeholder="Title"
+                            value={entry.title}
+                            onChange={(e) =>
+                              updateWorkEntry(idx, { title: e.target.value })
+                            }
+                            className="bg-white text-sm"
+                            aria-label={`Role ${idx + 1} title`}
+                          />
+                          <Input
+                            type="text"
+                            placeholder="Dates (e.g. 2022 – Present)"
+                            value={entry.dates}
+                            onChange={(e) =>
+                              updateWorkEntry(idx, { dates: e.target.value })
+                            }
+                            className="bg-white text-sm"
+                            aria-label={`Role ${idx + 1} dates`}
+                          />
+                        </div>
+                        <Textarea
+                          rows={3}
+                          placeholder="Bullets (one per line, leading with a verb + number where possible)"
+                          value={entry.bullets}
+                          onChange={(e) =>
+                            updateWorkEntry(idx, { bullets: e.target.value })
+                          }
+                          className="bg-white text-sm resize-none"
+                          aria-label={`Role ${idx + 1} bullets`}
+                        />
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addWorkEntry}
+                      className="text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                      + Add another role
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

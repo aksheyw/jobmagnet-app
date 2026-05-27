@@ -41,6 +41,7 @@ export function PortfolioRender({ generation }: PortfolioRenderProps) {
     >
       <Hero
         candidateName={narrative.candidate_name}
+        candidateContact={narrative.candidate_contact}
         headline={narrative.headline}
         companyName={job_context.company_name}
         brandStyle={brand_style}

@@ -38,6 +38,7 @@ export interface BrandStyle {
 
 export interface Narrative {
   candidate_name: string;
+  candidate_contact?: string;
   headline: string;
   why_im_a_fit: Array<{ bullet: string; metric: string }>;
   about: string;
