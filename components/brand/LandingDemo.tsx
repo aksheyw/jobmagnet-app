@@ -51,7 +51,11 @@ export function LandingDemo() {
   const [cycle, setCycle] = useState(0);
 
   useEffect(() => {
+    // Animation loop: reset and step through each agent with timers.
+    // The cycle-driven reset is intentional; suppressing the lint rule here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIdx(-1);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setElapsed(0);
 
     const timers: Array<ReturnType<typeof setTimeout>> = [];

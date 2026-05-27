@@ -254,7 +254,9 @@ export default function EditPage() {
   }, [shortId]);
 
   useEffect(() => {
-    fetchGeneration();
+    // Fire-and-forget initial fetch; fetchGeneration handles its own state updates.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchGeneration();
   }, [fetchGeneration]);
 
   const usage = useMemo(() => generation?.codex_usage ?? [], [generation]);
