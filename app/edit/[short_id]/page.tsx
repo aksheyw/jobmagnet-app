@@ -188,10 +188,6 @@ function TrailOfWork({ usage }: { readonly usage: CodexUsageRow[] }) {
             {formatDurationSec(totalMs)}
           </span>
         </div>
-        <div className="flex justify-between text-[11px]">
-          <span className="text-slate-500">Cost to you</span>
-          <span className="font-semibold text-emerald-700">Free</span>
-        </div>
       </div>
     </div>
   );
@@ -394,7 +390,7 @@ export default function EditPage() {
               </ul>
             )}
             <p className="text-[10px] text-slate-400 italic pt-1">
-              Apply-to-resume coming Day 4
+              Apply-to-resume — beta
             </p>
           </div>
 
@@ -410,7 +406,7 @@ export default function EditPage() {
               Regenerate entire portfolio
             </TooltipTrigger>
             <TooltipContent>
-              <p>Coming Day 4</p>
+              <p>Coming soon</p>
             </TooltipContent>
           </Tooltip>
 

@@ -110,8 +110,8 @@ export interface Job {
   id: string;
   status: "queued" | "running" | "completed" | "failed";
   agent_states: Record<string, AgentStatus>;
-  agent_started_at: string | null;
-  agent_completed_at: string | null;
+  agent_started_at: Record<string, string> | null;
+  agent_completed_at: Record<string, string> | null;
   error: string | null;
   created_at: string;
   completed_at: string | null;

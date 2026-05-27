@@ -178,7 +178,7 @@ export default function ProgressPage({ params }: ProgressPageProps) {
               {runningAgent ? (
                 <>
                   Currently:{" "}
-                  <span className="font-medium text-slate-700">
+                  <span className="font-medium text-slate-700 capitalize">
                     {runningAgent} agent
                   </span>{" "}
                   &middot; usually done in under 96 seconds

@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
+import type { CodexUsageRow } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 const SHORT_ID_REGEX = /^[a-zA-Z0-9_-]{4,32}$/;
-
-interface CodexUsageRow {
-  agent: string;
-  tokens_input: number;
-  tokens_output: number;
-  tokens_cached_input: number;
-  tokens_reasoning_output: number;
-  duration_ms: number;
-  called_at: string;
-}
 
 /**
  * GET /api/generations/<short_id> — return the full generated content for
