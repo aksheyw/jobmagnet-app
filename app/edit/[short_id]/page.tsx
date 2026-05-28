@@ -193,24 +193,6 @@ function TrailOfWork({ usage }: { readonly usage: CodexUsageRow[] }) {
   );
 }
 
-const AI_SUGGESTIONS = [
-  {
-    id: "1",
-    icon: "📌",
-    text: "Highlight your biggest metric more prominently in the hero",
-  },
-  {
-    id: "2",
-    icon: "✂️",
-    text: "Tighten the cover letter intro to 2 sentences",
-  },
-  {
-    id: "3",
-    icon: "🔀",
-    text: "Reorder Work bullets to match JD priority keywords",
-  },
-];
-
 export default function EditPage() {
   const params = useParams<{ short_id: string }>();
   const shortId = params.short_id;
@@ -383,38 +365,6 @@ export default function EditPage() {
                 Pitch approved
               </Badge>
             )}
-          </div>
-
-          {/* AI suggestions */}
-          <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
-            <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-              AI suggestions
-            </p>
-            {loading ? (
-              <div className="space-y-2">
-                <div className="h-3 rounded bg-slate-100 animate-pulse" />
-                <div className="h-3 rounded bg-slate-100 animate-pulse w-4/5" />
-              </div>
-            ) : (
-              <ul className="space-y-1.5">
-                {AI_SUGGESTIONS.map((s) => (
-                  <li
-                    key={s.id}
-                    className="group flex items-start gap-2 rounded-lg border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-indigo-200 px-2.5 py-2 transition-all cursor-not-allowed"
-                  >
-                    <span className="text-sm flex-shrink-0" aria-hidden>
-                      {s.icon}
-                    </span>
-                    <p className="text-xs text-slate-700 leading-snug">
-                      {s.text}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="text-[10px] text-slate-400 italic pt-1">
-              Apply-to-resume — beta
-            </p>
           </div>
 
           <Separator />

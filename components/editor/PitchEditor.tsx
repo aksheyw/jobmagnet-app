@@ -63,23 +63,22 @@ function ChipList({
       </Label>
       <div className="flex flex-wrap gap-1.5 min-h-[2rem]">
         {items.map((item, i) => (
-          <Badge
+          <span
             key={i}
-            variant="secondary"
-            className="text-xs py-0.5 gap-1"
+            className="inline-flex max-w-full items-start gap-1 rounded-md bg-secondary px-2 py-1 text-xs text-secondary-foreground"
           >
-            {item}
+            <span className="break-words [overflow-wrap:anywhere]">{item}</span>
             {editable && (
               <button
                 type="button"
                 aria-label={`Remove ${item}`}
                 onClick={() => removeChip(i)}
-                className="ml-0.5 opacity-60 hover:opacity-100 text-xs"
+                className="ml-0.5 mt-px shrink-0 opacity-60 hover:opacity-100"
               >
                 ×
               </button>
             )}
-          </Badge>
+          </span>
         ))}
       </div>
       {editable && (
@@ -160,7 +159,7 @@ export function PitchEditor({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">{pitch.title}</DialogTitle>
           <div className="flex items-center gap-2 mt-1">
