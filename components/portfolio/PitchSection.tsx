@@ -12,8 +12,8 @@ const STANCE_TITLES: Record<
 > = {
   builder: (c) => `What I'd ship at ${c}`,
   analyst: (c) => `What I'd investigate at ${c}`,
-  customer: (c) => `Where I'd lean in as a customer at ${c}`,
-  strategist: (c) => `What I'd propose at ${c}`,
+  customer: (c) => `The friction I hit using ${c}`,
+  strategist: (c) => `Where ${c} should go next`,
 };
 
 export function PitchSection({
@@ -161,11 +161,11 @@ export function PitchSection({
                   key={ev.url}
                   className="overflow-hidden rounded-lg border border-slate-200 bg-white"
                 >
-                  <div className="relative aspect-video w-full bg-slate-100">
+                  <div className="relative aspect-video w-full bg-slate-50">
                     <img
                       src={ev.url}
                       alt={ev.caption}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                       loading="lazy"
                     />
                   </div>
