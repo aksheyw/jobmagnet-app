@@ -54,12 +54,13 @@ function CodeBlock({ code }: { readonly code: string }) {
 
   return (
     <div className="relative mt-1">
-      <pre className="rounded-md bg-slate-900 text-slate-100 text-xs px-4 py-3 overflow-x-auto whitespace-pre">
+      <pre className="rounded-md bg-slate-900 text-slate-100 text-xs px-4 py-3 whitespace-pre-wrap break-words">
         {code}
       </pre>
       <button
         type="button"
         onClick={handleCopy}
+        aria-label="Copy command to clipboard"
         className="absolute top-2 right-2 rounded px-2 py-1 text-xs bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
       >
         {copied ? "Copied!" : "Copy"}

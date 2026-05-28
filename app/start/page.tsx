@@ -65,6 +65,9 @@ const JD_EXAMPLES = [
   "https://www.linkedin.com/jobs/view/...",
 ];
 
+// Minimum characters for a usable pitch seed — the agent builds the critique on it.
+const SEED_MIN = 15;
+
 export default function StartPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -90,10 +93,15 @@ export default function StartPage() {
   const [pitchEnabled, setPitchEnabled] = useState(false);
   const [stance, setStance] = useState<Stance>("builder");
   const [seed, setSeed] = useState("");
+  const [seedTouched, setSeedTouched] = useState(false);
 
   const jdProvided =
     jdTab === "url" ? jdUrl.trim().startsWith("http") : jdText.trim().length >= 40;
-  const canSubmit = profile.trim().length >= 200 && jdProvided && !isPending;
+  // A pitch needs a seed observation — it's the core input the agent builds on.
+  // Gate submit on it so the pitch is never silently dropped (toggle on + empty seed).
+  const pitchSeedValid = !pitchEnabled || seed.trim().length >= SEED_MIN;
+  const canSubmit =
+    profile.trim().length >= 200 && jdProvided && pitchSeedValid && !isPending;
 
   function updateWorkEntry(index: number, patch: Partial<WorkEntryDraft>) {
     setWorkEntries((entries) =>
@@ -167,7 +175,7 @@ export default function StartPage() {
           body.email = email.trim();
         }
 
-        if (pitchEnabled && seed.trim()) {
+        if (pitchEnabled && seed.trim().length >= SEED_MIN) {
           body.pitch = {
             enabled: true,
             stance,
@@ -605,6 +613,9 @@ Stripe · Senior Product Manager · 2022 – Present
                       className="text-sm font-medium text-slate-800"
                     >
                       Your seed observation
+                      <span className="ml-1 text-rose-500" aria-hidden>
+                        *
+                      </span>
                     </Label>
                     <Textarea
                       id="seed"
@@ -612,8 +623,19 @@ Stripe · Senior Product Manager · 2022 – Present
                       placeholder="What's one specific thing you noticed about this company's product? (1–3 sentences)"
                       value={seed}
                       onChange={(e) => setSeed(e.target.value)}
+                      onBlur={() => setSeedTouched(true)}
+                      aria-required={pitchEnabled}
+                      aria-describedby={
+                        seedTouched && !pitchSeedValid ? "seed-hint" : undefined
+                      }
                       className="bg-white text-sm resize-none"
                     />
+                    {seedTouched && !pitchSeedValid && (
+                      <p id="seed-hint" className="text-xs text-amber-600">
+                        Required — add one specific observation (a sentence or
+                        two) so the pitch has something real to build on.
+                      </p>
+                    )}
                     <div className="rounded-md bg-slate-50 border border-slate-100 px-3 py-2">
                       <p className="text-[11px] text-slate-500 leading-snug">
                         <span className="font-semibold text-slate-600">
@@ -645,7 +667,9 @@ Stripe · Senior Product Manager · 2022 – Present
             {!canSubmit && !isPending && (
               <p className="text-xs text-slate-400 text-center mt-2">
                 {profile.trim().length < 200 && "Section A needs 200+ chars. "}
-                {!jdProvided && "Section B needs a JD."}
+                {!jdProvided && "Section B needs a JD. "}
+                {!pitchSeedValid &&
+                  "Section D needs a seed observation for your pitch (or turn it off)."}
               </p>
             )}
             {canSubmit && (
