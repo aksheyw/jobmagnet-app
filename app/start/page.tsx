@@ -12,6 +12,18 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/BrandMark";
+import {
+  User,
+  Briefcase,
+  Mail,
+  Lightbulb,
+  Hammer,
+  BarChart3,
+  Users,
+  Compass,
+  ListChecks,
+  type LucideIcon,
+} from "lucide-react";
 
 type Stance = "builder" | "analyst" | "customer" | "strategist";
 
@@ -30,31 +42,31 @@ const STANCE_OPTIONS: Array<{
   value: Stance;
   label: string;
   description: string;
-  icon: string;
+  icon: LucideIcon;
 }> = [
   {
     value: "builder",
     label: "Builder",
     description: "What you'd ship — a concrete product feature or improvement.",
-    icon: "🛠️",
+    icon: Hammer,
   },
   {
     value: "analyst",
     label: "Analyst",
     description: "What you'd investigate — metrics, gaps, or strategic bets.",
-    icon: "📊",
+    icon: BarChart3,
   },
   {
     value: "customer",
     label: "Customer",
     description: "Where you'd lean in — pain points from a user's perspective.",
-    icon: "🎯",
+    icon: Users,
   },
   {
     value: "strategist",
     label: "Strategist",
     description: "What you'd propose — positioning, market, or org leverage.",
-    icon: "🧭",
+    icon: Compass,
   },
 ];
 
@@ -241,7 +253,7 @@ export default function StartPage() {
           {/* Section A — Profile */}
           <Section
             label="A"
-            icon="👤"
+            icon={User}
             title="Your profile"
             subtitle="Required · paste from LinkedIn export or About page"
           >
@@ -344,7 +356,11 @@ Stripe · Senior Product Manager · 2022 – Present
                 >
                   <div>
                     <p className="text-sm font-medium text-slate-800">
-                      📋 Add structured work entries
+<ListChecks
+                        className="mr-1.5 inline h-4 w-4 -translate-y-0.5 text-slate-500"
+                        aria-hidden
+                      />
+                      Add structured work entries
                       <span className="ml-1.5 text-xs font-normal text-slate-500">
                         (optional · improves accuracy)
                       </span>
@@ -445,7 +461,7 @@ Stripe · Senior Product Manager · 2022 – Present
           {/* Section B — Job */}
           <Section
             label="B"
-            icon="🎯"
+            icon={Briefcase}
             title="The job"
             subtitle="Required · paste the URL or the full JD text"
           >
@@ -516,7 +532,7 @@ Stripe · Senior Product Manager · 2022 – Present
           {/* Section C — Email */}
           <Section
             label="C"
-            icon="✉️"
+            icon={Mail}
             title="Email"
             subtitle="Optional · skip if you don't need to come back later"
           >
@@ -542,7 +558,7 @@ Stripe · Senior Product Manager · 2022 – Present
           {/* Section D — Pitch agent */}
           <Section
             label="D"
-            icon="💡"
+            icon={Lightbulb}
             title="Pitch agent"
             subtitle="Optional · adds a PM-style pitch (problem · hypothesis · solution · metrics · tradeoffs)"
           >
@@ -591,9 +607,10 @@ Stripe · Senior Product Manager · 2022 – Present
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-sm" aria-hidden>
-                                {opt.icon}
-                              </span>
+                              <opt.icon
+                                className="h-4 w-4 text-indigo-600"
+                                aria-hidden
+                              />
                               <p className="text-sm font-semibold text-slate-800">
                                 {opt.label}
                               </p>
@@ -687,13 +704,13 @@ Stripe · Senior Product Manager · 2022 – Present
 
 function Section({
   label,
-  icon,
+  icon: Icon,
   title,
   subtitle,
   children,
 }: {
   readonly label: string;
-  readonly icon: string;
+  readonly icon: LucideIcon;
   readonly title: string;
   readonly subtitle: string;
   readonly children: React.ReactNode;
@@ -709,9 +726,7 @@ function Section({
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-base leading-none" aria-hidden>
-              {icon}
-            </span>
+            <Icon className="h-4 w-4 text-slate-500" aria-hidden />
             <h2 className="text-base font-semibold text-slate-900">{title}</h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5 leading-snug">

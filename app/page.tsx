@@ -3,6 +3,14 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Wordmark } from "@/components/brand/BrandMark";
 import { LandingDemo } from "@/components/brand/LandingDemo";
+import {
+  Search,
+  Palette,
+  PenLine,
+  Lightbulb,
+  Code2,
+  type LucideIcon,
+} from "lucide-react";
 
 export default function Home() {
   return (
@@ -41,14 +49,13 @@ export default function Home() {
               The portfolio recruiters{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 text-indigo-600">
-                  can&apos;t ignore
+                  can&apos;t ignore.
                 </span>
                 <span
                   className="absolute -bottom-1 left-0 h-3 w-full bg-amber-200/60 -z-0 rounded-sm"
                   aria-hidden
                 />
               </span>
-              .
             </h1>
             <p className="text-base md:text-lg text-slate-500 mb-7 leading-relaxed max-w-lg">
               Paste a job description. Drop your LinkedIn. In 96 seconds, walk
@@ -115,31 +122,31 @@ export default function Home() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <AgentCard
             order={1}
-            icon="🔍"
+            icon={Search}
             name="Research"
             description="Scrapes the JD, parses career level, infers the right pitch stance."
           />
           <AgentCard
             order={2}
-            icon="🎨"
+            icon={Palette}
             name="Brand"
             description="Pulls real brand colors + fonts via Brandfetch. Your site looks native to the company."
           />
           <AgentCard
             order={3}
-            icon="✍️"
+            icon={PenLine}
             name="Narrative"
             description="Writes your headline, About, cover letter, and role-specific resume bullets. Zero generic fluff."
           />
           <AgentCard
             order={4}
-            icon="💡"
+            icon={Lightbulb}
             name="Pitch"
             description="Optional PM-style pitch — problem, hypothesis, solution, metrics. Builder · Analyst · Customer · Strategist."
           />
           <AgentCard
             order={5}
-            icon="⚙️"
+            icon={Code2}
             name="Code"
             description="Generates a buildable Next.js project + zips it for self-deploy. Done in milliseconds."
           />
@@ -156,9 +163,9 @@ export default function Home() {
               note="median end-to-end generation"
             />
             <Stat
-              value="Free"
-              label="to try"
-              note="no signup, no credit card"
+              value="0"
+              label="templates"
+              note="brand-matched to the company, not a stock theme"
             />
             <Stat
               value="Yours"
@@ -175,7 +182,7 @@ export default function Home() {
           Built solo for the OpenAI × Outskill hackathon · May 25 – 31, 2026
         </p>
         <p>
-          Every agent runs on{" "}
+          Every agent runs on the{" "}
           <a
             href="https://platform.openai.com/codex"
             className="underline hover:text-slate-600"
@@ -183,8 +190,8 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             OpenAI Codex SDK
-          </a>{" "}
-          via ChatGPT Plus OAuth. Zero token spend.
+          </a>
+          .
         </p>
       </footer>
     </main>
@@ -193,20 +200,23 @@ export default function Home() {
 
 function AgentCard({
   order,
-  icon,
+  icon: Icon,
   name,
   description,
 }: {
   readonly order: number;
-  readonly icon: string;
+  readonly icon: LucideIcon;
   readonly name: string;
   readonly description: string;
 }) {
   return (
     <div className="group relative rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-indigo-200 hover:shadow-sm">
       <div className="flex items-start justify-between mb-2">
-        <span className="text-2xl" aria-hidden>
-          {icon}
+        <span
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 ring-1 ring-indigo-100"
+          aria-hidden
+        >
+          <Icon className="h-[18px] w-[18px] text-indigo-600" strokeWidth={2} />
         </span>
         <span className="text-[10px] font-mono text-slate-300 group-hover:text-indigo-400 transition-colors">
           0{order}

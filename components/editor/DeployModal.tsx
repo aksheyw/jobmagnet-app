@@ -86,7 +86,8 @@ export function DeployModal({ open, onClose, generation }: DeployModalProps) {
         <DialogHeader>
           <DialogTitle>Deploy your portfolio</DialogTitle>
           <p className="text-xs text-slate-400 mt-0.5">
-            Custom hosted URLs on JobMagnet — coming Final.
+            Get it live on your own Vercel in about 2 minutes — you own the code
+            and the URL.
           </p>
         </DialogHeader>
 
@@ -157,7 +158,7 @@ export function DeployModal({ open, onClose, generation }: DeployModalProps) {
             <p>
               Your portfolio will be at{" "}
               <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
-                &lt;your-project&gt;.vercel.app
+                your-project.vercel.app
               </code>
               . Send that to the recruiter.
             </p>

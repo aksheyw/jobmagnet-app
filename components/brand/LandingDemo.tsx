@@ -2,41 +2,48 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Search,
+  Palette,
+  PenLine,
+  Lightbulb,
+  Code2,
+} from "lucide-react";
 
 const AGENTS = [
   {
     key: "research",
     label: "Research agent",
     caption: "Reading the JD",
-    icon: "🔍",
+    icon: Search,
     duration: 1600,
   },
   {
     key: "brand",
     label: "Brand agent",
     caption: "Pulling brand colors + fonts",
-    icon: "🎨",
+    icon: Palette,
     duration: 1100,
   },
   {
     key: "narrative",
     label: "Narrative agent",
     caption: "Writing your story",
-    icon: "✍️",
+    icon: PenLine,
     duration: 2200,
   },
   {
     key: "pitch",
     label: "Pitch agent",
     caption: "Drafting your PM-style pitch",
-    icon: "💡",
+    icon: Lightbulb,
     duration: 2400,
   },
   {
     key: "code",
     label: "Code agent",
     caption: "Generating Next.js + zipping",
-    icon: "⚙️",
+    icon: Code2,
     duration: 1300,
   },
 ];
@@ -152,6 +159,7 @@ export function LandingDemo() {
           <div className="space-y-1.5">
             {AGENTS.map((a, idx) => {
               const s = stateFor(idx);
+              const Icon = a.icon;
               return (
                 <div
                   key={a.key}
@@ -162,9 +170,17 @@ export function LandingDemo() {
                     s === "queued" && "bg-slate-50/50 opacity-50",
                   )}
                 >
-                  <span className="text-base flex-shrink-0" aria-hidden>
-                    {a.icon}
-                  </span>
+                  <Icon
+                    className={cn(
+                      "h-4 w-4 flex-shrink-0 transition-colors",
+                      s === "running"
+                        ? "text-indigo-600"
+                        : s === "done"
+                          ? "text-emerald-600"
+                          : "text-slate-400",
+                    )}
+                    aria-hidden
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-slate-800 leading-tight">
                       {a.label}

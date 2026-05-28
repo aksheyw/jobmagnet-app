@@ -19,13 +19,23 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/BrandMark";
+import {
+  Search,
+  Palette,
+  PenLine,
+  Lightbulb,
+  Code2,
+  Lock,
+  Circle,
+  type LucideIcon,
+} from "lucide-react";
 
-const AGENT_LABELS: Record<string, { label: string; icon: string }> = {
-  research: { label: "Research", icon: "🔍" },
-  brand: { label: "Brand", icon: "🎨" },
-  narrative: { label: "Narrative", icon: "✍️" },
-  pitch: { label: "Pitch", icon: "💡" },
-  code: { label: "Code", icon: "⚙️" },
+const AGENT_LABELS: Record<string, { label: string; icon: LucideIcon }> = {
+  research: { label: "Research", icon: Search },
+  brand: { label: "Brand", icon: Palette },
+  narrative: { label: "Narrative", icon: PenLine },
+  pitch: { label: "Pitch", icon: Lightbulb },
+  code: { label: "Code", icon: Code2 },
 };
 
 function formatTokens(n: number) {
@@ -91,9 +101,7 @@ function BrowserChrome({
         </div>
         <div className="flex-1 mx-2">
           <div className="rounded-md bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-600 font-mono flex items-center gap-2">
-            <span className="text-slate-400" aria-hidden>
-              🔒
-            </span>
+            <Lock className="h-3 w-3 flex-shrink-0 text-slate-400" aria-hidden />
             <span className="truncate">
               <span className="text-slate-400">https://</span>
               {slug}
@@ -101,8 +109,8 @@ function BrowserChrome({
             </span>
           </div>
         </div>
-        <span className="hidden md:inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <span className="inline-flex flex-shrink-0 items-center gap-1 text-[10px] text-amber-700 font-medium px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
           Preview
         </span>
       </div>
@@ -140,7 +148,7 @@ function TrailOfWork({ usage }: { readonly usage: CodexUsageRow[] }) {
         {usage.map((row, i) => {
           const meta = AGENT_LABELS[row.agent] ?? {
             label: row.agent,
-            icon: "•",
+            icon: Circle,
           };
           const totalTokens =
             (row.tokens_input ?? 0) + (row.tokens_output ?? 0);
@@ -149,8 +157,8 @@ function TrailOfWork({ usage }: { readonly usage: CodexUsageRow[] }) {
               key={`${row.agent}-${i}`}
               className="flex items-center gap-2 text-xs"
             >
-              <span className="w-4 text-center" aria-hidden>
-                {meta.icon}
+              <span className="flex w-4 justify-center" aria-hidden>
+                <meta.icon className="h-3.5 w-3.5 text-slate-500" />
               </span>
               <span className="font-medium text-slate-700 w-16">
                 {meta.label}
@@ -249,7 +257,7 @@ export default function EditPage() {
             Portfolio not found
           </h1>
           <p className="text-sm text-slate-500">
-            This short ID doesn&apos;t exist or has expired.
+            We couldn&apos;t find a portfolio at this link.
           </p>
           <Link href="/start" className={cn(buttonVariants())}>
             Generate a new one &rarr;
@@ -297,12 +305,21 @@ export default function EditPage() {
               <LoadingSkeleton />
             </div>
           ) : generation ? (
-            <BrowserChrome
-              candidateName={generation.narrative.candidate_name}
-              companyDomain={generation.job_context.company_domain}
-            >
-              <PortfolioRender generation={generation} />
-            </BrowserChrome>
+            <div className="space-y-2">
+              <p className="px-1 text-xs text-slate-500">
+                Live preview of your generated site —{" "}
+                <span className="font-medium text-slate-700">
+                  download the project
+                </span>{" "}
+                to deploy it to your own URL.
+              </p>
+              <BrowserChrome
+                candidateName={generation.narrative.candidate_name}
+                companyDomain={generation.job_context.company_domain}
+              >
+                <PortfolioRender generation={generation} />
+              </BrowserChrome>
+            </div>
           ) : null}
         </div>
 

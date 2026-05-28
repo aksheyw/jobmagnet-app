@@ -17,7 +17,24 @@ const BodySchema = z
   .object({
     jd_url: z.string().url().optional(),
     jd_paste_text: z.string().min(40).max(50_000).optional(),
-    parsed_profile: z.record(z.string(), z.unknown()),
+    // F82: bound the jsonb-written profile blob. A legit profile is small
+    // ({ raw_text, name?, contact?, email?, work_history? }); these caps stop a
+    // malicious client from writing an oversized/pathological object to Supabase.
+    parsed_profile: z
+      .record(z.string().max(120), z.unknown())
+      .refine((o) => Object.keys(o).length <= 60, {
+        message: "parsed_profile has too many fields",
+      })
+      .refine(
+        (o) => {
+          try {
+            return JSON.stringify(o).length <= 120_000;
+          } catch {
+            return false;
+          }
+        },
+        { message: "parsed_profile payload too large" },
+      ),
     email: z.string().email().optional(),
     pitch: PitchSchema.optional(),
   })
