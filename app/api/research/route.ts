@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { callVpsAgent, VpsClientError } from "@/lib/vps/client";
+import { createSupabaseAdmin } from "@/lib/supabase/server";
+import {
+  getClientIp,
+  dailyBucketKey,
+  secondsUntilNextUtcDay,
+  checkRateLimit,
+  GEN_DAILY_LIMIT,
+  RATE_LIMIT_TTL_SECONDS,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -33,6 +42,40 @@ export async function POST(req: Request) {
 
   const { jd_url, jd_paste_text, job_id } = parseResult.data;
   const id = job_id ?? `web-${crypto.randomUUID()}`;
+
+  // F92 (ripple): this is a public, unauthenticated endpoint that runs a Codex agent on
+  // the shared ChatGPT Plus quota — same exposure as /api/generate — so it gets the same
+  // per-IP daily cap (separate "research" bucket). Not currently called by the UI.
+  const now = new Date();
+  const clientIp = getClientIp(req.headers);
+  if (clientIp !== "unknown") {
+    const supabase = createSupabaseAdmin();
+    const rateLimit = await checkRateLimit(
+      async (key) => {
+        const { data, error } = await supabase.rpc("increment_rate_limit", {
+          p_key: key,
+          p_ttl_seconds: RATE_LIMIT_TTL_SECONDS,
+        });
+        if (error) throw error;
+        return Number(data);
+      },
+      dailyBucketKey("research", clientIp, now),
+      GEN_DAILY_LIMIT,
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "You've hit today's free research limit. This runs on a personal quota — try again tomorrow.",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(secondsUntilNextUtcDay(now)) },
+        },
+      );
+    }
+  }
 
   try {
     const vpsResponse = await callVpsAgent({

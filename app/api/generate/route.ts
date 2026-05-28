@@ -3,6 +3,14 @@ import { z } from "zod";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { generateShortId } from "@/lib/short-id";
 import { startOrchestration, OrchestrateError } from "@/lib/vps/orchestrate";
+import {
+  getClientIp,
+  dailyBucketKey,
+  secondsUntilNextUtcDay,
+  checkRateLimit,
+  GEN_DAILY_LIMIT,
+  RATE_LIMIT_TTL_SECONDS,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -80,6 +88,45 @@ export async function POST(req: Request) {
   }
 
   const supabase = createSupabaseAdmin();
+
+  // F92: per-IP daily cap so the public link can't drain the shared ChatGPT Plus
+  // quota. Runs only for well-formed attempts (invalid bodies are rejected above and
+  // never consume a slot). Fails open if the counter store is unavailable.
+  //
+  // `getClientIp` only returns "unknown" off-Vercel (local/dev/direct calls); on Vercel
+  // the platform always sets x-forwarded-for. We skip the cap for "unknown" so those
+  // non-public callers don't all collapse into one shared bucket and DoS each other.
+  // (Revisit if ever deployed off Vercel — there "unknown" would disable the cap.)
+  const now = new Date();
+  const clientIp = getClientIp(req.headers);
+  if (clientIp !== "unknown") {
+    const rateLimit = await checkRateLimit(
+      async (key) => {
+        const { data, error } = await supabase.rpc("increment_rate_limit", {
+          p_key: key,
+          p_ttl_seconds: RATE_LIMIT_TTL_SECONDS,
+        });
+        if (error) throw error;
+        return Number(data);
+      },
+      dailyBucketKey("gen", clientIp, now),
+      GEN_DAILY_LIMIT,
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "You've hit today's free generation limit. This runs on a personal quota — explore the example portfolios on the site, or try again tomorrow.",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(secondsUntilNextUtcDay(now)) },
+        },
+      );
+    }
+  }
+
   const shortId = generateShortId(10);
 
   const { data: job, error: insertErr } = await supabase
