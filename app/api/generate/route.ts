@@ -28,7 +28,9 @@ const BodySchema = z
       .refine(
         (o) => {
           try {
-            return JSON.stringify(o).length <= 120_000;
+            // Generous ceiling: the real abuse guard is the key-count + key-length
+            // caps above. A long LinkedIn paste + many work entries must still pass.
+            return JSON.stringify(o).length <= 400_000;
           } catch {
             return false;
           }
