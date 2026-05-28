@@ -6,23 +6,33 @@ export const runtime = "nodejs";
 
 const SHORT_ID_REGEX = /^[a-zA-Z0-9_-]{4,32}$/;
 
+// Bounds on every field so a crafted edit POST can't write an unbounded
+// payload into the jsonb column, and the evidence URL is restricted to safe
+// schemes (data:image SVG or http(s)) so a javascript:/other-scheme URI can't
+// be stored and later rendered as a clickable link in the editor.
 const EvidenceItemSchema = z.object({
   type: z.enum(["screenshot", "wireframe-svg", "diagram-svg"]),
-  url: z.string().min(1),
-  caption: z.string().min(1),
+  url: z
+    .string()
+    .min(1)
+    .max(20000)
+    .refine((u) => /^(https?:|data:image\/)/i.test(u), {
+      message: "evidence url must be an http(s) link or a data:image URI",
+    }),
+  caption: z.string().min(1).max(500),
 });
 
 const PitchSectionSchema = z.object({
   stance: z.enum(["builder", "analyst", "customer", "strategist"]),
-  seed: z.string(),
-  title: z.string().min(1),
-  problem: z.string().min(1),
-  hypothesis: z.string(),
-  proposed_solution: z.string().min(1),
-  metrics_to_track: z.array(z.string()),
-  tradeoffs: z.array(z.string()),
-  guardrails: z.array(z.string()),
-  evidence: z.array(EvidenceItemSchema),
+  seed: z.string().max(400),
+  title: z.string().min(1).max(300),
+  problem: z.string().min(1).max(2000),
+  hypothesis: z.string().max(2000),
+  proposed_solution: z.string().min(1).max(2000),
+  metrics_to_track: z.array(z.string().max(500)).max(20),
+  tradeoffs: z.array(z.string().max(500)).max(20),
+  guardrails: z.array(z.string().max(500)).max(20),
+  evidence: z.array(EvidenceItemSchema).max(6),
   confidence: z.number().min(0).max(1),
 });
 

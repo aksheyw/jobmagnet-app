@@ -47,7 +47,7 @@ function ChipList({
 
   function addChip() {
     const trimmed = inputVal.trim();
-    if (!trimmed) return;
+    if (!trimmed || items.includes(trimmed)) return;
     onChange([...items, trimmed]);
     setInputVal("");
   }
@@ -64,7 +64,7 @@ function ChipList({
       <div className="flex flex-wrap gap-1.5 min-h-[2rem]">
         {items.map((item, i) => (
           <span
-            key={i}
+            key={item}
             className="inline-flex max-w-full items-start gap-1 rounded-md bg-secondary px-2 py-1 text-xs text-secondary-foreground"
           >
             <span className="break-words [overflow-wrap:anywhere]">{item}</span>
@@ -277,21 +277,32 @@ export function PitchEditor({
                 Evidence
               </Label>
               <ul className="space-y-1.5">
-                {pitch.evidence.map((ev) => (
-                  <li key={ev.url} className="text-sm">
-                    <span className="text-slate-400 text-xs uppercase mr-2">
-                      {ev.type}
-                    </span>
-                    <a
-                      href={ev.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 underline"
-                    >
-                      {ev.caption}
-                    </a>
-                  </li>
-                ))}
+                {pitch.evidence.map((ev) => {
+                  // Only link out to safe schemes — the evidence URL is a
+                  // data:image SVG (or an http(s) link). Guard against a
+                  // javascript:/other-scheme URI sneaking in via a crafted
+                  // pitch edit and executing on click in the app origin.
+                  const safeHref = /^(https?:|data:image\/)/i.test(ev.url);
+                  return (
+                    <li key={ev.url} className="text-sm">
+                      <span className="text-slate-400 text-xs uppercase mr-2">
+                        {ev.type}
+                      </span>
+                      {safeHref ? (
+                        <a
+                          href={ev.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 underline"
+                        >
+                          {ev.caption}
+                        </a>
+                      ) : (
+                        <span className="text-slate-600">{ev.caption}</span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
