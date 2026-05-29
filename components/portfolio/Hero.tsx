@@ -1,4 +1,5 @@
 import type { BrandStyle } from "@/lib/types";
+import type { BrandRoles } from "@/lib/brand-contrast";
 
 interface HeroProps {
   readonly candidateName: string;
@@ -7,6 +8,7 @@ interface HeroProps {
   readonly headline: string;
   readonly companyName: string;
   readonly brandStyle: BrandStyle;
+  readonly brand: BrandRoles;
 }
 
 interface CtaTarget {
@@ -84,6 +86,7 @@ export function Hero({
   headline,
   companyName,
   brandStyle,
+  brand,
 }: HeroProps) {
   const initials = candidateName
     .split(" ")
@@ -105,7 +108,9 @@ export function Hero({
       <div
         className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white"
         style={{
-          background: `linear-gradient(135deg, ${brandStyle.primary}, ${brandStyle.secondary})`,
+          // ink (not raw primary): keeps the white initials legible even when
+          // the brand primary is pale (e.g. Sarvam #C1CCF5).
+          background: `linear-gradient(135deg, ${brand.ink}, ${brandStyle.secondary})`,
         }}
         aria-hidden="true"
       >
@@ -124,7 +129,7 @@ export function Hero({
           <span key={i}>
             {part}
             {i < parts.length - 1 && (
-              <strong style={{ color: brandStyle.primary }}>{companyName}</strong>
+              <strong style={{ color: brand.ink }}>{companyName}</strong>
             )}
           </span>
         ))}
@@ -147,7 +152,7 @@ export function Hero({
                   : "inline-flex items-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50"
               }
               style={
-                isPrimary ? { backgroundColor: brandStyle.primary } : undefined
+                isPrimary ? { backgroundColor: brand.ink } : undefined
               }
             >
               {cta.label}

@@ -1,4 +1,5 @@
 import type { Generation } from "@/lib/types";
+import { deriveBrandRoles } from "@/lib/brand-contrast";
 import { Hero } from "./Hero";
 import { WhyImAFit } from "./WhyImAFit";
 import { About } from "./About";
@@ -12,6 +13,7 @@ interface PortfolioRenderProps {
 
 export function PortfolioRender({ generation }: PortfolioRenderProps) {
   const { brand_style, narrative, pitch_section, job_context } = generation;
+  const brand = deriveBrandRoles(brand_style);
 
   const cssVars = {
     "--brand-primary": brand_style.primary,
@@ -46,19 +48,29 @@ export function PortfolioRender({ generation }: PortfolioRenderProps) {
         headline={narrative.headline}
         companyName={job_context.company_name}
         brandStyle={brand_style}
+        brand={brand}
       />
 
-      <WhyImAFit items={whyFitItems} brandPrimary={brand_style.primary} />
+      <WhyImAFit
+        items={whyFitItems}
+        brandPrimary={brand_style.primary}
+        brandInk={brand.ink}
+      />
 
       {pitch_section && (
         <PitchSection
           pitch={pitch_section}
           companyName={job_context.company_name}
           brandPrimary={brand_style.primary}
+          brandInk={brand.ink}
         />
       )}
 
-      <Work entries={workEntries} brandPrimary={brand_style.primary} />
+      <Work
+        entries={workEntries}
+        brandPrimary={brand_style.primary}
+        brandInk={brand.ink}
+      />
 
       <About text={narrative.about} />
 
