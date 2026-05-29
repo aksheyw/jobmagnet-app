@@ -141,32 +141,77 @@ export function toReadableInk(
   return candidate;
 }
 
-export interface BrandRoles {
-  /** Raw brand primary — decorative use only (tints, borders, dots, gradients). */
-  readonly primary: string;
-  /**
-   * Legible, hue-preserved brand accent. Used both as text on the (white)
-   * section background AND as a fill behind a white label (safe via contrast
-   * symmetry — see toReadableInk).
-   */
-  readonly ink: string;
+const BLACK = "#000000";
+
+/**
+ * Return `input` as a normalized uppercase hex if it parses, else `fallback`.
+ * The single guard `deriveTheme` uses before passing any brand value into a
+ * contrast call — `contrastRatio`/`relativeLuminance` throw on non-hex, so an
+ * empty or "red" brand color must be sanitized here first.
+ */
+export function safeHex(input: string, fallback: string): string {
+  const rgb = parseHex(input);
+  return rgb ? toHex(rgb) : fallback;
 }
 
 /**
- * Map a brand style onto the roles the portfolio actually uses: the raw primary
- * for decoration, and a legible ink for every brand-tinted text/accent. An
- * already-AA brand (e.g. Stripe #635BFF) passes through untouched, so existing
- * dark-brand portfolios are unchanged.
+ * RGB-linear blend from `a` (t=0) to `b` (t=1). Convention: mix(base, brand,
+ * amountTowardBrand) — e.g. `mix("#FFFFFF", primary, 0.1)` is a 10%-brand tint of
+ * white. Computes the concrete hex of a tinted surface so foregrounds can be
+ * contrast-asserted against a real color instead of a CSS `color-mix` the build
+ * can't measure. Malformed ends degrade to safe neutrals (never throws).
  */
-export function deriveBrandRoles(brand: {
-  readonly primary: string;
-  readonly background?: string;
-}): BrandRoles {
-  const primary = parseHex(brand.primary) ? brand.primary : DARK_INK;
-  // Portfolio sections render on white regardless of brand_style.background,
-  // so derive the ink against white — the real rendered context.
-  return {
-    primary,
-    ink: toReadableInk(primary, WHITE, 4.5),
-  };
+export function mix(a: string, b: string, t: number): string {
+  const ca = parseHex(a) ?? parseHex(DARK_INK)!;
+  const cb = parseHex(b) ?? parseHex(WHITE)!;
+  const k = Math.max(0, Math.min(1, t));
+  return toHex({
+    r: ca.r + (cb.r - ca.r) * k,
+    g: ca.g + (cb.g - ca.g) * k,
+    b: ca.b + (cb.b - ca.b) * k,
+  });
 }
+
+/** Drive a color `pct` of the way toward black (RGB mix). General hex helper. */
+export function darken(hex: string, pct: number): string {
+  return mix(hex, BLACK, pct);
+}
+
+/**
+ * Like `toReadableInk`, but legible against ANY surface: darkens the color on a
+ * light surface, **lightens** it on a dark one (for dark-mood portfolios). Hue +
+ * saturation are preserved via HSL, so a pale brand becomes an asset on dark.
+ * Malformed input falls back to a neutral that passes on the given surface.
+ */
+export function toReadableOn(
+  color: string,
+  onBg: string,
+  target: number = 4.5,
+): string {
+  const bg = parseHex(onBg) ? onBg : WHITE;
+  const bgIsLight = relativeLuminance(bg) > 0.5;
+
+  const rgb = parseHex(color);
+  if (!rgb) return bgIsLight ? DARK_INK : "#F5F5F7";
+
+  const normalized = toHex(rgb);
+  if (contrastRatio(normalized, bg) >= target) return normalized;
+
+  const { h, s, l: startL } = rgbToHsl(rgb);
+  let l = startL;
+  let candidate = normalized;
+  const step = bgIsLight ? -0.01 : 0.01;
+  // Bounded walk: darken (light bg) or lighten (dark bg) toward the target.
+  // A for-loop — not `while (l > 0 && l < 1)` — so it still runs from lightness
+  // 0 (pure black on a dark surface) or 1 (pure white on a light surface).
+  for (let i = 0; i < 101; i++) {
+    l = Math.max(0, Math.min(1, l + step));
+    candidate = toHex(hslToRgb(h, s, l));
+    if (contrastRatio(candidate, bg) >= target) return candidate;
+    if (l <= 0 || l >= 1) break;
+  }
+  return candidate;
+}
+
+// (deriveBrandRoles / BrandRoles removed — superseded by deriveTheme's full
+// Theme token set in brand-theme.ts; the old primary+ink role model is unused.)

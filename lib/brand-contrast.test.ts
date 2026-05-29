@@ -3,7 +3,10 @@ import {
   relativeLuminance,
   contrastRatio,
   toReadableInk,
-  deriveBrandRoles,
+  toReadableOn,
+  mix,
+  darken,
+  safeHex,
 } from "./brand-contrast";
 
 // Small hex parser used only to make assertions about the *shape* of returned
@@ -121,26 +124,105 @@ describe("toReadableInk", () => {
   });
 });
 
-describe("deriveBrandRoles", () => {
-  it("keeps the raw primary for decorative use", () => {
-    expect(deriveBrandRoles({ primary: "#C1CCF5" }).primary).toBe("#C1CCF5");
+describe("safeHex", () => {
+  it("returns a valid 6-digit hex untouched (normalized to uppercase)", () => {
+    expect(safeHex("#635bff", "#000000")).toBe("#635BFF");
   });
 
-  it("derives a legible text ink for a pale brand (Sarvam)", () => {
-    const roles = deriveBrandRoles({ primary: "#C1CCF5", background: "#FFFFFF" });
-    expect(contrastRatio(roles.ink, "#FFFFFF")).toBeGreaterThanOrEqual(4.5);
-    // The ink is also safe as a fill behind a white label (contrast symmetry).
-    expect(contrastRatio("#FFFFFF", roles.ink)).toBeGreaterThanOrEqual(4.5);
+  it("expands 3-digit shorthand", () => {
+    expect(safeHex("#abc", "#000000")).toBe("#AABBCC");
   });
 
-  it("leaves an already-AA brand untouched (Stripe stays exactly #635BFF)", () => {
-    const roles = deriveBrandRoles({ primary: "#635BFF", background: "#FFFFFF" });
-    expect(roles.primary).toBe("#635BFF");
-    expect(roles.ink).toBe("#635BFF");
+  it("returns the fallback for an unparseable value", () => {
+    expect(safeHex("not-a-color", "#111111")).toBe("#111111");
   });
 
-  it("stays safe when the brand primary is missing or malformed", () => {
-    const roles = deriveBrandRoles({ primary: "" });
-    expect(contrastRatio(roles.ink, "#FFFFFF")).toBeGreaterThanOrEqual(4.5);
+  it("returns the fallback for an empty string", () => {
+    expect(safeHex("", "#222222")).toBe("#222222");
+  });
+});
+
+describe("mix", () => {
+  it("returns the first color at t=0 and the second at t=1", () => {
+    expect(mix("#FFFFFF", "#000000", 0)).toBe("#FFFFFF");
+    expect(mix("#FFFFFF", "#000000", 1)).toBe("#000000");
+  });
+
+  it("blends to the exact midpoint at t=0.5", () => {
+    expect(mix("#000000", "#FFFFFF", 0.5)).toBe("#808080");
+  });
+
+  it("produces a tint whose luminance sits between the two inputs", () => {
+    const tint = mix("#635BFF", "#FFFFFF", 0.1); // 10% indigo into white
+    const l = relativeLuminance(tint);
+    expect(l).toBeGreaterThan(relativeLuminance("#635BFF"));
+    expect(l).toBeLessThan(relativeLuminance("#FFFFFF"));
+  });
+
+  it("never crashes on a malformed input (guards both ends)", () => {
+    expect(() => mix("garbage", "#FFFFFF", 0.5)).not.toThrow();
+    expect(mix("garbage", "#FFFFFF", 0.5)).toMatch(/^#[0-9A-F]{6}$/);
+  });
+});
+
+describe("darken", () => {
+  it("returns the color unchanged at pct=0", () => {
+    expect(darken("#635BFF", 0)).toBe("#635BFF");
+  });
+
+  it("drives a color toward black, lowering its luminance", () => {
+    const dark = darken("#635BFF", 0.72);
+    expect(relativeLuminance(dark)).toBeLessThan(relativeLuminance("#635BFF"));
+    expect(dark).toMatch(/^#[0-9A-F]{6}$/);
+  });
+
+  it("reaches black at pct=1", () => {
+    expect(darken("#FFFFFF", 1)).toBe("#000000");
+  });
+});
+
+describe("toReadableOn", () => {
+  it("darkens a pale brand color on a LIGHT surface (matches toReadableInk behavior)", () => {
+    const ink = toReadableOn("#C1CCF5", "#FFFFFF");
+    expect(contrastRatio(ink, "#FFFFFF")).toBeGreaterThanOrEqual(4.5);
+    expect(relativeLuminance(ink)).toBeLessThan(relativeLuminance("#C1CCF5"));
+  });
+
+  it("LIGHTENS a mid-tone brand color on a DARK surface until it passes AA", () => {
+    // Stripe #635BFF on near-black is only ~3.8:1 — must be lightened, not darkened.
+    const onDark = "#0A0A0B";
+    const accent = toReadableOn("#635BFF", onDark);
+    expect(contrastRatio(accent, onDark)).toBeGreaterThanOrEqual(4.5);
+    expect(relativeLuminance(accent)).toBeGreaterThan(relativeLuminance("#635BFF"));
+  });
+
+  it("preserves brand hue when lightening on dark (indigo stays blue-dominant)", () => {
+    const accent = toReadableOn("#635BFF", "#0A0A0B");
+    const h = accent.replace("#", "");
+    const r = parseInt(h.slice(0, 2), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    expect(b).toBeGreaterThan(r); // still blue-dominant, not washed to white
+  });
+
+  it("lightens pure black on a dark surface (starts at lightness 0)", () => {
+    // Notion's #000000 on a near-black canvas must lighten to a legible gray —
+    // the lightening loop has to run even when the starting lightness is 0.
+    const onDark = "#0A0A0B";
+    expect(contrastRatio(toReadableOn("#000000", onDark), onDark)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("leaves an already-legible color unchanged on its surface", () => {
+    // Pale lavender on near-black already has high contrast — return as-is.
+    const onDark = "#0A0A0B";
+    expect(contrastRatio(toReadableOn("#C1CCF5", onDark), onDark)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("falls back to a legible color on a dark surface when input is malformed", () => {
+    const onDark = "#0A0A0B";
+    expect(contrastRatio(toReadableOn("not-a-color", onDark), onDark)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("falls back to a legible color on a light surface when input is malformed", () => {
+    expect(contrastRatio(toReadableOn("nope", "#FFFFFF"), "#FFFFFF")).toBeGreaterThanOrEqual(4.5);
   });
 });

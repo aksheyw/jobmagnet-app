@@ -1,14 +1,12 @@
-import type { BrandStyle } from "@/lib/types";
-import type { BrandRoles } from "@/lib/brand-contrast";
+import type { Theme } from "@/lib/brand-theme";
 
 interface HeroProps {
+  readonly theme: Theme;
   readonly candidateName: string;
   readonly candidateContact?: string;
   readonly candidateEmail?: string;
   readonly headline: string;
   readonly companyName: string;
-  readonly brandStyle: BrandStyle;
-  readonly brand: BrandRoles;
 }
 
 interface CtaTarget {
@@ -80,13 +78,12 @@ function resolveCtas(
 }
 
 export function Hero({
+  theme,
   candidateName,
   candidateContact,
   candidateEmail,
   headline,
   companyName,
-  brandStyle,
-  brand,
 }: HeroProps) {
   const initials = candidateName
     .split(" ")
@@ -96,70 +93,147 @@ export function Hero({
     .toUpperCase();
 
   const ctas = resolveCtas(candidateContact, candidateEmail, candidateName);
-  const parts = headline.split(companyName);
+  // Guard: an empty companyName would make split("") return one item per
+  // character (~50 spans). Only split when there's a real company to emphasize.
+  const parts = companyName ? headline.split(companyName) : [headline];
+
+  const splitLeft = theme.flags.heroLayout === "split-left";
+
+  // Medallion shape per mood flag. circle-glow adds a soft accent halo.
+  const medallionRadius =
+    theme.flags.medallionShape === "square" ? "0.5rem" : "9999px";
+  const medallionGlow =
+    theme.flags.medallionShape === "circle-glow"
+      ? `0 0 0 1px ${theme.accent}, 0 8px 32px -4px ${theme.accent}`
+      : undefined;
+
+  const medallion = (
+    <div
+      className="flex h-16 w-16 shrink-0 items-center justify-center text-2xl font-bold"
+      style={{
+        background: `linear-gradient(135deg, ${theme.accent}, ${theme.secondaryAccent})`,
+        color: theme.onAccent,
+        borderRadius: medallionRadius,
+        boxShadow: medallionGlow,
+        fontFamily: theme.headingFamily,
+      }}
+      aria-hidden="true"
+    >
+      {initials}
+    </div>
+  );
+
+  const name = (
+    <h1
+      style={{
+        color: theme.onHero,
+        fontFamily: theme.headingFamily,
+        fontSize: theme.h1.fontSize,
+        fontWeight: theme.h1.fontWeight,
+        letterSpacing: theme.h1.letterSpacing,
+        lineHeight: theme.h1.lineHeight,
+      }}
+    >
+      {candidateName}
+    </h1>
+  );
+
+  const headlineEl = (
+    <p
+      className={splitLeft ? "max-w-xl" : "mx-auto max-w-xl"}
+      style={{
+        color: theme.onHeroMuted,
+        fontFamily: theme.bodyFamily,
+        fontSize: theme.body.fontSize,
+        fontWeight: theme.body.fontWeight,
+        letterSpacing: theme.body.letterSpacing,
+        lineHeight: theme.body.lineHeight,
+      }}
+    >
+      {parts.map((part, i) => (
+        <span key={i}>
+          {part}
+          {i < parts.length - 1 && (
+            <strong style={{ color: theme.heroAccent, fontWeight: 700 }}>
+              {companyName}
+            </strong>
+          )}
+        </span>
+      ))}
+    </p>
+  );
+
+  const ctaRow = (
+    <div
+      className={
+        splitLeft
+          ? "flex flex-wrap items-center gap-3"
+          : "flex flex-wrap items-center justify-center gap-3"
+      }
+    >
+      {ctas.map((cta, idx) => {
+        const isPrimary = idx === 0;
+        const externalProps = cta.external
+          ? { target: "_blank" as const, rel: "noopener noreferrer" }
+          : {};
+        return (
+          <a
+            key={cta.kind}
+            href={cta.href}
+            {...externalProps}
+            className="inline-flex items-center rounded-md px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            style={
+              isPrimary
+                ? { backgroundColor: theme.accent, color: theme.onAccent }
+                : {
+                    border: `1px solid ${theme.border}`,
+                    backgroundColor: theme.surface,
+                    color: theme.fg,
+                  }
+            }
+          >
+            {cta.label}
+          </a>
+        );
+      })}
+    </div>
+  );
+
+  if (splitLeft) {
+    return (
+      <section
+        className="px-6 text-left"
+        style={{
+          background: theme.heroBand,
+          paddingTop: theme.sectionPy,
+          paddingBottom: theme.sectionPy,
+        }}
+      >
+        <div className="mx-auto flex max-w-4xl flex-col gap-6 md:flex-row md:items-center md:gap-8">
+          <div className="md:shrink-0">{medallion}</div>
+          <div className="flex flex-col gap-4">
+            {name}
+            {headlineEl}
+            {ctaRow}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
-      className="py-16 px-6 text-center"
+      className="px-6 text-center"
       style={{
-        background: `linear-gradient(180deg, ${brandStyle.background} 0%, color-mix(in srgb, ${brandStyle.primary} 4%, white) 100%)`,
+        background: theme.heroBand,
+        paddingTop: theme.sectionPy,
+        paddingBottom: theme.sectionPy,
       }}
     >
-      <div
-        className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white"
-        style={{
-          // ink (not raw primary): keeps the white initials legible even when
-          // the brand primary is pale (e.g. Sarvam #C1CCF5).
-          background: `linear-gradient(135deg, ${brand.ink}, ${brandStyle.secondary})`,
-        }}
-        aria-hidden="true"
-      >
-        {initials}
-      </div>
-
-      <h1
-        className="mb-2 text-4xl font-bold tracking-tight text-slate-900"
-        style={{ letterSpacing: "-0.5px" }}
-      >
-        {candidateName}
-      </h1>
-
-      <p className="mx-auto max-w-xl text-lg leading-relaxed text-slate-600">
-        {parts.map((part, i) => (
-          <span key={i}>
-            {part}
-            {i < parts.length - 1 && (
-              <strong style={{ color: brand.ink }}>{companyName}</strong>
-            )}
-          </span>
-        ))}
-      </p>
-
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        {ctas.map((cta, idx) => {
-          const isPrimary = idx === 0;
-          const externalProps = cta.external
-            ? { target: "_blank" as const, rel: "noopener noreferrer" }
-            : {};
-          return (
-            <a
-              key={cta.kind}
-              href={cta.href}
-              {...externalProps}
-              className={
-                isPrimary
-                  ? "inline-flex items-center rounded-md px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-                  : "inline-flex items-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50"
-              }
-              style={
-                isPrimary ? { backgroundColor: brand.ink } : undefined
-              }
-            >
-              {cta.label}
-            </a>
-          );
-        })}
-      </div>
+      <div className="mx-auto mb-4 w-16">{medallion}</div>
+      <div className="mb-2">{name}</div>
+      {headlineEl}
+      <div className="mt-6">{ctaRow}</div>
     </section>
   );
 }

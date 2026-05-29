@@ -1,5 +1,7 @@
 import type { Generation } from "@/lib/types";
-import { deriveBrandRoles } from "@/lib/brand-contrast";
+import { deriveTheme } from "@/lib/brand-theme";
+import { BrandStyleSchema, BRAND_FALLBACK } from "@/lib/schemas/brand-style";
+import { googleFontLinks } from "@/lib/font-map";
 import { Hero } from "./Hero";
 import { WhyImAFit } from "./WhyImAFit";
 import { About } from "./About";
@@ -9,17 +11,24 @@ import { InfoBadge } from "./InfoBadge";
 
 interface PortfolioRenderProps {
   readonly generation: Generation;
+  /** Suppress the floating "about" badge (e.g. the gallery renders many portfolios). */
+  readonly showInfoBadge?: boolean;
 }
 
-export function PortfolioRender({ generation }: PortfolioRenderProps) {
+export function PortfolioRender({
+  generation,
+  showInfoBadge = true,
+}: PortfolioRenderProps) {
   const { brand_style, narrative, pitch_section, job_context } = generation;
-  const brand = deriveBrandRoles(brand_style);
 
-  const cssVars = {
-    "--brand-primary": brand_style.primary,
-    "--brand-secondary": brand_style.secondary,
-    "--brand-background": brand_style.background,
-  } as React.CSSProperties;
+  // R2: the brand arrives from an unauthenticated route with a raw `.select()`
+  // and no Zod, so validate here — the load-bearing guard before deriveTheme.
+  const parsed = BrandStyleSchema.safeParse(brand_style);
+  const brand = parsed.success ? parsed.data : BRAND_FALLBACK;
+  const theme = deriveTheme(brand);
+  // Load the brand's actual typeface at render time (allowlisted Google fonts);
+  // proprietary faces degrade to the fontStack's generic fallback.
+  const fontLinks = googleFontLinks([brand.headline_font, brand.body_font]);
 
   const whyFitItems = narrative.why_im_a_fit.map((item) => ({
     bullet: item.bullet,
@@ -36,57 +45,58 @@ export function PortfolioRender({ generation }: PortfolioRenderProps) {
   return (
     <div
       style={{
-        ...cssVars,
-        backgroundColor: brand_style.background,
+        backgroundColor: theme.bg,
+        color: theme.fg,
+        fontFamily: theme.bodyFamily,
         minHeight: "100vh",
+        // Keep dark-mood surfaces when printing / saving to PDF (otherwise the
+        // browser drops backgrounds and light text vanishes on white paper).
+        printColorAdjust: "exact",
+        WebkitPrintColorAdjust: "exact",
       }}
     >
+      {fontLinks.map((href) => (
+        <link key={href} rel="stylesheet" href={href} />
+      ))}
       <Hero
+        theme={theme}
         candidateName={narrative.candidate_name}
         candidateContact={narrative.candidate_contact}
         candidateEmail={narrative.candidate_email}
         headline={narrative.headline}
         companyName={job_context.company_name}
-        brandStyle={brand_style}
-        brand={brand}
       />
 
-      <WhyImAFit
-        items={whyFitItems}
-        brandPrimary={brand_style.primary}
-        brandInk={brand.ink}
-      />
+      <WhyImAFit theme={theme} items={whyFitItems} />
 
       {pitch_section && (
         <PitchSection
+          theme={theme}
           pitch={pitch_section}
           companyName={job_context.company_name}
-          brandPrimary={brand_style.primary}
-          brandInk={brand.ink}
         />
       )}
 
-      <Work
-        entries={workEntries}
-        brandPrimary={brand_style.primary}
-        brandInk={brand.ink}
-      />
+      <Work theme={theme} entries={workEntries} />
 
-      <About text={narrative.about} />
+      <About theme={theme} text={narrative.about} />
 
       <footer
-        className="px-6 py-5 text-center"
-        style={{ backgroundColor: "#0A2540" }}
+        className="px-6 py-6 text-center"
+        style={{ backgroundColor: theme.footerBg }}
       >
-        <p className="text-sm font-medium text-white">
+        <p
+          className="text-sm font-semibold"
+          style={{ color: theme.onFooter, fontFamily: theme.headingFamily }}
+        >
           {narrative.candidate_name}
         </p>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs" style={{ color: theme.onFooterMuted }}>
           {job_context.company_domain}
         </p>
       </footer>
 
-      <InfoBadge />
+      {showInfoBadge && <InfoBadge />}
     </div>
   );
 }
