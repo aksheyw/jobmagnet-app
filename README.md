@@ -29,6 +29,7 @@ Built solo for the **OpenAI x Outskill AI Builders Hackathon**. The interesting 
 |---|---|
 | **Live app** | https://jobmagnet-app.vercel.app |
 | **Brand gallery** — 7 companies, each in its own look | https://jobmagnet-app.vercel.app/gallery |
+| **Codex usage** — live agent telemetry | https://jobmagnet-app.vercel.app/usage |
 | **Demo — Sarvam** (minimal, lavender) | https://jobmagnet-app.vercel.app/edit/ptc4NPeQ6G |
 | **Demo — Stripe** (systematic; Builder pitch) | https://jobmagnet-app.vercel.app/edit/FRxTzecthj |
 | **Demo — Stripe** (Strategist pitch) | https://jobmagnet-app.vercel.app/edit/PxFgzb9RUh |
@@ -119,7 +120,7 @@ Generation requires a running **jobmagnet-codex** instance (the Codex agent runt
 
 ## Scope — MVP vs Final
 
-The deliverable is the **portfolio website** (Lane A). Intentional MVP scope cuts (wired for Final, not promised here): LinkedIn-PDF parsing, magic-link email, `.docx`/PDF résumé + cover-letter *downloads*, a 2nd template, and a `/usage` telemetry dashboard. Full deferred-work list lives in the project wiki.
+The deliverable is the **portfolio website** (Lane A). Intentional MVP scope cuts (wired for Final, not promised here): LinkedIn-PDF parsing, magic-link email, `.docx`/PDF résumé + cover-letter *downloads*, and a 2nd template. Full deferred-work list lives in the project wiki.
 
 ## License
 
