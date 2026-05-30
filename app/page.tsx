@@ -223,7 +223,7 @@ export default function Home() {
               note="brand-matched to the company, not a stock theme"
             />
             <Stat
-              value="Yours"
+              value="Your"
               label="code, your hosting"
               note="self-deploy to Vercel · Netlify · anywhere"
             />
