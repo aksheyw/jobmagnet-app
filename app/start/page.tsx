@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/BrandMark";
+import { PitchExample } from "./PitchExample";
+import type { Stance } from "./pitch-examples";
 import {
   User,
   Briefcase,
@@ -24,8 +26,6 @@ import {
   ListChecks,
   type LucideIcon,
 } from "lucide-react";
-
-type Stance = "builder" | "analyst" | "customer" | "strategist";
 
 interface WorkEntryDraft {
   company: string;
@@ -563,6 +563,10 @@ Stripe · Senior Product Manager · 2022 – Present
             subtitle="Optional · adds a PM-style pitch (problem · hypothesis · solution · metrics · tradeoffs)"
           >
             <div className="space-y-4">
+              {/* Onboarding aid — explains the pitch + shows real example output
+                  (visible even with the toggle off, so a first-timer can decide). */}
+              <PitchExample stance={stance} />
+
               <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3">
                 <div>
                   <p className="text-sm font-medium text-slate-800">
