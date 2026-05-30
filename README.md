@@ -64,7 +64,7 @@ flowchart LR
     end
     V --> Agents
     Agents -->|"tokens + duration"| S
-    C -->|"builds + zips a Next.js site"| Z[("signed zip on VPS")]
+    C -->|"assembles + zips a Next.js site"| Z[("signed zip on VPS")]
     A -.->|"poll /api/jobs/:id every 2s"| S
     U -->|"Download · HMAC-signed URL"| Z
 ```
@@ -78,7 +78,7 @@ This is the part that matters for an OpenAI hackathon — not a thin wrapper, bu
 - **5 specialized agents**, each with its own prompt, schema, and tool set — orchestrated end-to-end (not one mega-prompt).
 - **Live `web_search` + network access** on the Research, Brand, and Pitch agents to fetch real page content (verified by `webSearchQueries` count on every call).
 - **Strict structured output** — 4 of 5 agents use `outputSchema` (JSON Schema), so we trust the shape instead of regex-parsing prose.
-- **Sandboxed workspace** — the Pitch agent runs `workspace-write` to author SVG evidence; the Code agent copies a Next.js template, rewrites the Tailwind config + `next/font` imports + content JSON, builds, and zips — deterministically (0 LLM tokens).
+- **Sandboxed workspace** — the Pitch agent runs `workspace-write` to author SVG evidence; the Code agent copies a Next.js template, rewrites the Tailwind config + `next/font` imports + content JSON, assembles, and zips — deterministically (0 LLM tokens). The downloaded project is a standard Next.js app you build + deploy yourself.
 - **Auth (MVP):** generations run via the Codex CLI's **ChatGPT Plus OAuth**, so there's no per-token API cost during the hackathon. Production would use an OpenAI API key.
 
 ## Tech stack
