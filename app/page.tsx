@@ -3,6 +3,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Wordmark } from "@/components/brand/BrandMark";
 import { LandingDemo } from "@/components/brand/LandingDemo";
+import { PortfolioRender } from "@/components/portfolio/PortfolioRender";
+import { DUOLINGO_EXAMPLE } from "@/lib/examples";
 import {
   Search,
   Palette,
@@ -150,6 +152,59 @@ export default function Home() {
             name="Code"
             description="Generates a buildable Next.js project + zips it for self-deploy. Done in milliseconds."
           />
+        </div>
+      </section>
+
+      {/* Real generated site — reference example */}
+      <section id="example" className="px-6 pb-20 max-w-6xl mx-auto w-full">
+        <div className="mb-8">
+          <p className="text-xs font-semibold text-indigo-600 uppercase tracking-widest mb-2">
+            See it for real
+          </p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight max-w-2xl">
+            An actual generated site — not a mockup.
+          </h2>
+          <p className="mt-3 text-base text-slate-500 max-w-2xl leading-relaxed">
+            A real JobMagnet run: a Group Product Manager application to
+            Duolingo, themed in Duolingo&apos;s own brand. Scroll inside the
+            frame, or open the full site.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+          {/* Browser chrome */}
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+            <div className="flex gap-1.5">
+              <span className="h-3 w-3 rounded-full bg-red-400" />
+              <span className="h-3 w-3 rounded-full bg-yellow-400" />
+              <span className="h-3 w-3 rounded-full bg-green-400" />
+            </div>
+            <div className="flex-1 mx-2 min-w-0">
+              <div className="rounded-md bg-white border border-slate-200 px-3 py-1 text-xs text-slate-500 font-mono truncate text-center">
+                akshey-walia-duolingo-com.vercel.app
+              </div>
+            </div>
+            <Link
+              href="/edit/dNfNbTswsb"
+              aria-label="Open the full Duolingo portfolio site"
+              className="flex-shrink-0 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              Open full site &rarr;
+            </Link>
+          </div>
+          {/* The real render, scrollable inside the frame (keyboard-focusable). */}
+          <div
+            tabIndex={0}
+            role="group"
+            aria-label="Preview of a generated Duolingo portfolio — scroll to explore"
+            className="h-[600px] overflow-y-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+          >
+            <PortfolioRender
+              generation={DUOLINGO_EXAMPLE}
+              showInfoBadge={false}
+              headingLevel={2}
+            />
+          </div>
         </div>
       </section>
 

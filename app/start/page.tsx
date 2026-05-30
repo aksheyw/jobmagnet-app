@@ -255,7 +255,7 @@ export default function StartPage() {
             label="A"
             icon={User}
             title="Your profile"
-            subtitle="Required · paste from LinkedIn export or About page"
+            subtitle="Required · paste your resume or LinkedIn — either works"
           >
             <div className="space-y-5">
               {/* Name + contact (improves portfolio accuracy) */}
@@ -308,12 +308,12 @@ export default function StartPage() {
                   htmlFor="profile"
                   className="text-xs font-medium text-slate-700"
                 >
-                  Paste your LinkedIn About + Experience
+                  Paste your resume or LinkedIn profile
                 </Label>
                 <Textarea
                   id="profile"
                   rows={12}
-                  placeholder={`Paste your LinkedIn About + Experience sections.
+                  placeholder={`Paste your resume, or your LinkedIn About + Experience — either format works.
 
 Example:
 Senior PM at Stripe. Previously led Growth at Dropbox (0 → 1M users). Built checkout flows processed by 3M+ merchants. Obsessed with reducing activation friction.

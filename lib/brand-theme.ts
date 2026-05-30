@@ -24,6 +24,7 @@ import {
   contrastRatio,
   relativeLuminance,
 } from "./brand-contrast";
+import { resolveFont } from "./font-map";
 
 export interface ThemeFlags {
   readonly heroLayout: "center" | "split-left";
@@ -217,8 +218,15 @@ function flagsFor(mood: BrandStyle["mood"]): ThemeFlags {
 }
 
 function fontStack(name: string | undefined | null, serif: boolean): string {
-  const clean = (name ?? "").replace(/["\\\n\r]/g, "").trim();
-  const quoted = clean ? `"${clean}", ` : "";
+  // Resolve through the font allowlist so the CSS family matches the font that
+  // googleFontLinks actually loads (e.g. brandfetch's "din-round" → "Nunito").
+  // Unmapped/proprietary names are kept verbatim and degrade to the generic
+  // fallback — so this only changes output for allowlisted aliases.
+  const resolved = resolveFont(name);
+  const family = resolved.fellBack
+    ? (name ?? "").replace(/["\\\n\r]/g, "").trim()
+    : resolved.importName.replace(/_/g, " ");
+  const quoted = family ? `"${family}", ` : "";
   return serif
     ? `${quoted}Georgia, Cambria, "Times New Roman", serif`
     : `${quoted}ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;

@@ -13,11 +13,18 @@ interface PortfolioRenderProps {
   readonly generation: Generation;
   /** Suppress the floating "about" badge (e.g. the gallery renders many portfolios). */
   readonly showInfoBadge?: boolean;
+  /**
+   * Heading level for the hero name. Defaults to 1 (standalone portfolio page).
+   * Embedded previews (gallery, landing example) pass 2 so the host page keeps
+   * a single top-level h1.
+   */
+  readonly headingLevel?: 1 | 2;
 }
 
 export function PortfolioRender({
   generation,
   showInfoBadge = true,
+  headingLevel = 1,
 }: PortfolioRenderProps) {
   const { brand_style, narrative, pitch_section, job_context } = generation;
 
@@ -65,6 +72,7 @@ export function PortfolioRender({
         candidateEmail={narrative.candidate_email}
         headline={narrative.headline}
         companyName={job_context.company_name}
+        headingLevel={headingLevel}
       />
 
       <WhyImAFit theme={theme} items={whyFitItems} />

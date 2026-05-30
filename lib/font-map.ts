@@ -45,6 +45,11 @@ const FONT_MAP: Record<string, string> = {
   // R6 additions (brand-theming): common modern brand sans faces.
   "hanken grotesk": "Hanken_Grotesk",
   archivo: "Archivo",
+  // Duolingo's brand face DIN Round isn't on Google Fonts; Nunito is the closest
+  // free rounded substitute. Mapped so brandfetch's "din-round" renders rounded
+  // (both the loaded <link> via googleFontLinks AND the CSS family via fontStack).
+  "din-round": "Nunito",
+  "din round": "Nunito",
 };
 
 const FALLBACK = "Inter";

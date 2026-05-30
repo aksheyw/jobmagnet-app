@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Built With](https://img.shields.io/badge/Built_With-OpenAI_Codex_SDK_·_Next.js_·_Vercel-black?style=for-the-badge)](#tech-stack)
 
-[**→ Try the live demo**](https://jobmagnet-app.vercel.app) · [**→ Brand gallery (7 companies)**](https://jobmagnet-app.vercel.app/gallery) · [**→ A generated site (Stripe)**](https://jobmagnet-app.vercel.app/edit/FRxTzecthj)
+[**→ Try the live demo**](https://jobmagnet-app.vercel.app) · [**→ Brand gallery (8 companies)**](https://jobmagnet-app.vercel.app/gallery) · [**→ A generated site (Duolingo)**](https://jobmagnet-app.vercel.app/edit/dNfNbTswsb)
 
 </div>
 
@@ -28,10 +28,10 @@ Built solo for the **OpenAI x Outskill AI Builders Hackathon**. The interesting 
 | | Link |
 |---|---|
 | **Live app** | https://jobmagnet-app.vercel.app |
-| **Brand gallery** — 7 companies, each in its own look | https://jobmagnet-app.vercel.app/gallery |
+| **Brand gallery** — 8 companies, each in its own look | https://jobmagnet-app.vercel.app/gallery |
 | **Codex usage** — live agent telemetry | https://jobmagnet-app.vercel.app/usage |
+| **Demo — Duolingo** (systematic green; Builder pitch) | https://jobmagnet-app.vercel.app/edit/dNfNbTswsb |
 | **Demo — Sarvam** (minimal, lavender) | https://jobmagnet-app.vercel.app/edit/ptc4NPeQ6G |
-| **Demo — Stripe** (systematic; Builder pitch) | https://jobmagnet-app.vercel.app/edit/FRxTzecthj |
 | **Demo — Stripe** (Strategist pitch) | https://jobmagnet-app.vercel.app/edit/PxFgzb9RUh |
 | **Engine-room health** | https://jobmagnet-codex.aksheywalia.in/health |
 

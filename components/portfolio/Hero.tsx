@@ -7,6 +7,12 @@ interface HeroProps {
   readonly candidateEmail?: string;
   readonly headline: string;
   readonly companyName: string;
+  /**
+   * Heading level for the candidate name. Defaults to 1 for a standalone
+   * portfolio page. Embedded previews (gallery cards, the landing example)
+   * pass 2 so the host page keeps a single top-level h1.
+   */
+  readonly headingLevel?: 1 | 2;
 }
 
 interface CtaTarget {
@@ -84,7 +90,9 @@ export function Hero({
   candidateEmail,
   headline,
   companyName,
+  headingLevel = 1,
 }: HeroProps) {
+  const NameTag = headingLevel === 2 ? "h2" : "h1";
   const initials = candidateName
     .split(" ")
     .map((n) => n[0])
@@ -124,7 +132,7 @@ export function Hero({
   );
 
   const name = (
-    <h1
+    <NameTag
       style={{
         color: theme.onHero,
         fontFamily: theme.headingFamily,
@@ -135,7 +143,7 @@ export function Hero({
       }}
     >
       {candidateName}
-    </h1>
+    </NameTag>
   );
 
   const headlineEl = (
